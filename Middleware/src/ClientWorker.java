@@ -6,7 +6,7 @@ import java.net.Socket;
 
 class ClientWorker implements Runnable {
 	private Socket client;
-	
+
 	ClientWorker(Socket client) {
 		this.client = client;
 	}
@@ -23,16 +23,15 @@ class ClientWorker implements Runnable {
 			System.out.println("in or out failed");
 			System.exit(-1);
 		}
-
-		while (true) {
-			try {
-				line = in.readLine();
-				if (line != null) 
+		try {
+			while ((line = in.readLine()) != null) {
 					System.out.println(line);
-			} catch (IOException e) {
-				System.out.println("Read failed");
-				System.exit(-1);
+					out.println("answering client: " + line);
+
 			}
+		} catch (IOException e) {
+			System.out.println("Read failed");
+			System.exit(-1);
 		}
 	}
 }

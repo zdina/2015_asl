@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project ASL_Setup">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Setup/setup.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="Logging.Logging"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Setup/bin"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Setup/lib/postgresql-9.4-1203.jdbc42.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Setup/lib/log4j-api-2.3.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Setup/lib/log4j-core-2.3.jar"/>
+        </jar>
+    </target>
+</project>

@@ -2,3 +2,12 @@
 2015-09-23 16:19:27,559 TRACE Logging [main] Entering application
 2015-09-23 16:19:27,561 ERROR Logging [main] some error
 2015-09-23 16:19:27,561 TRACE Logging [main] Exiting application
+2015-09-24 22:38:41,472 TRACE L.Logging [main] Entering application
+2015-09-24 22:38:41,474 ERROR L.Logging [main] some error
+2015-09-24 22:38:41,475 TRACE L.Logging [main] Exiting application
+2015-09-24 22:42:33,290 TRACE L.Logging [main] Entering application
+2015-09-24 22:42:33,292 ERROR L.Logging [main] some error
+2015-09-24 22:42:33,292 TRACE L.Logging [main] Exiting application
+2015-09-24 22:56:12,850 TRACE L.Logging [main] Entering application
+2015-09-24 22:56:12,852 ERROR L.Logging [main] some error
+2015-09-24 22:56:12,852 TRACE L.Logging [main] Exiting application

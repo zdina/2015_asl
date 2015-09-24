@@ -12,9 +12,12 @@ public class Client {
 				socket.getInputStream()));
 		int count = 0;
 		while (count < 10) {
-			out.println("asdf");
+			out.println("client 1: # " + count);
 			Thread.sleep(1000);
+			String line = in.readLine();
+			System.out.println(line);
 			count++;
 		}
+		socket.close();
 	}
 }

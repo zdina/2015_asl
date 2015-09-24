@@ -11,7 +11,9 @@ public class Client {
 		BufferedReader in = new BufferedReader(new InputStreamReader(
 				socket.getInputStream()));
 		while (true) {
-			out.println("asdf2");
+			out.println("client 2");
+			String line = in.readLine();
+			System.out.println(line);
 			Thread.sleep(1000);
 		}
 	}
