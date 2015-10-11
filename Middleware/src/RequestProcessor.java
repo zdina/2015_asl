@@ -28,8 +28,4 @@ public class RequestProcessor extends Processor {
 
 	}
 
-	// public static void main(String[] args) throws Exception {
-	// new RequestProcessor(4321);
-	// }
-
 }

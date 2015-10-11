@@ -8,11 +8,13 @@ public class DatabaseWorker implements Runnable {
 	
 	private DatabaseProcessor dp;
 	private Connection con;
-	private ClientRequest cr;
+	private ClientProxy cr;
+	private Server middleware;
 
-	public DatabaseWorker(DatabaseProcessor dp, ClientRequest cr) {
+	public DatabaseWorker(DatabaseProcessor dp, Server middleware, ClientProxy cr) {
 		this.dp = dp;
 		this.cr = cr;
+		this.middleware = middleware;
 	}
 	
 	public void run() {
@@ -26,7 +28,10 @@ public class DatabaseWorker implements Runnable {
 			ps.executeUpdate();
 			ResultSet generatedId = ps.getGeneratedKeys();
 			generatedId.next();
-			System.out.println("Inserted id for '" + cr.getRequest() + "': " + generatedId.getLong(1));
+			long id =  generatedId.getLong(1);
+			System.out.println("Inserted id for '" + cr.getRequest() + "': " + id);
+			cr.setResponse("100 " + id);
+			middleware.addToResponseQueue(cr);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

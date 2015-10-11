@@ -26,9 +26,9 @@ public class DatabaseProcessor extends Processor {
 	public void run() {
 		int count = 1;
 		while (running) {
-			ClientRequest cr = middleware.removeFromRequestQueue();
+			ClientProxy cr = middleware.removeFromRequestQueue();
 			if (cr != null) {
-				DatabaseWorker dw = new DatabaseWorker(this, cr);
+				DatabaseWorker dw = new DatabaseWorker(this, middleware, cr);
 				executor.execute(dw);
 			}
 			count++;
