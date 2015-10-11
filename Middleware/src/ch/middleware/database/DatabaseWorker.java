@@ -1,7 +1,11 @@
+package ch.middleware.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import ch.middleware.ClientProxy;
+import ch.middleware.Server;
 
 
 public class DatabaseWorker implements Runnable {
@@ -23,7 +27,7 @@ public class DatabaseWorker implements Runnable {
 			con = dp.getConnectionFromPool();
 		
 		try {
-			RequestTranslator rt = new RequestTranslator(cr.getRequest(), con);
+			RequestToSQLTranslator rt = new RequestToSQLTranslator(cr.getRequest(), con);
 			PreparedStatement ps = rt.getStatement();
 			ps.executeUpdate();
 			ResultSet generatedId = ps.getGeneratedKeys();

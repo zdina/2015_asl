@@ -1,6 +1,9 @@
+package ch.middleware.response;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import ch.middleware.ClientProxy;
 
 public class ResponseWorker implements Runnable {
 

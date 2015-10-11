@@ -1,5 +1,9 @@
+package ch.middleware.request;
 import java.io.IOException;
 import java.net.ServerSocket;
+
+import ch.middleware.Processor;
+import ch.middleware.Server;
 
 public class RequestProcessor extends Processor {
 

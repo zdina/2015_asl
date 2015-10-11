@@ -1,3 +1,8 @@
+package ch.middleware.response;
+import ch.middleware.ClientProxy;
+import ch.middleware.Processor;
+import ch.middleware.Server;
+
 public class ResponseProcessor extends Processor {
 
 	public ResponseProcessor(Server middleware) {

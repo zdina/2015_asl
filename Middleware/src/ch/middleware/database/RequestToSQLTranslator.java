@@ -1,15 +1,18 @@
+package ch.middleware.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class RequestTranslator {
+import asl.Util;
+
+public class RequestToSQLTranslator {
 
 	private PreparedStatement stmt;
 	private String[] requestParts;
 	private Connection con;
 
-	public RequestTranslator(String request, Connection con) throws SQLException {
+	public RequestToSQLTranslator(String request, Connection con) throws SQLException {
 		this.con = con;
 		requestParts = request.split(" ");
 		int requestCode = Integer.parseInt(requestParts[0]);

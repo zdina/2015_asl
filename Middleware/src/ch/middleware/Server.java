@@ -1,5 +1,10 @@
+package ch.middleware;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import ch.middleware.database.DatabaseProcessor;
+import ch.middleware.request.RequestProcessor;
+import ch.middleware.response.ResponseProcessor;
 
 public class Server {
 
