@@ -1,9 +1,9 @@
-package ch.middleware.request;
+package asl.middleware.request;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import ch.middleware.Processor;
-import ch.middleware.Server;
+import asl.middleware.Processor;
+import asl.middleware.Server;
 
 public class RequestProcessor extends Processor {
 

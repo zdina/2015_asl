@@ -1,4 +1,4 @@
-package ch.middleware.database;
+package asl.middleware.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

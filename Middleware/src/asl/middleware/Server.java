@@ -1,10 +1,10 @@
-package ch.middleware;
+package asl.middleware;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import ch.middleware.database.DatabaseProcessor;
-import ch.middleware.request.RequestProcessor;
-import ch.middleware.response.ResponseProcessor;
+import asl.middleware.database.DatabaseProcessor;
+import asl.middleware.request.RequestProcessor;
+import asl.middleware.response.ResponseProcessor;
 
 public class Server {
 

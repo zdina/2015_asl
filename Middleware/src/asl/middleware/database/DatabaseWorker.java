@@ -1,11 +1,11 @@
-package ch.middleware.database;
+package asl.middleware.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import ch.middleware.ClientProxy;
-import ch.middleware.Server;
+import asl.middleware.ClientProxy;
+import asl.middleware.Server;
 
 
 public class DatabaseWorker implements Runnable {

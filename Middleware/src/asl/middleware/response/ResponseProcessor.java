@@ -1,7 +1,7 @@
-package ch.middleware.response;
-import ch.middleware.ClientProxy;
-import ch.middleware.Processor;
-import ch.middleware.Server;
+package asl.middleware.response;
+import asl.middleware.ClientProxy;
+import asl.middleware.Processor;
+import asl.middleware.Server;
 
 public class ResponseProcessor extends Processor {
 

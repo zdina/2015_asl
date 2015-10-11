@@ -1,4 +1,4 @@
-package ch.middleware.database;
+package asl.middleware.database;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -6,9 +6,9 @@ import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import ch.middleware.ClientProxy;
-import ch.middleware.Processor;
-import ch.middleware.Server;
+import asl.middleware.ClientProxy;
+import asl.middleware.Processor;
+import asl.middleware.Server;
 
 public class DatabaseProcessor extends Processor {
 

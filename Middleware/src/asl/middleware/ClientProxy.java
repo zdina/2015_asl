@@ -1,4 +1,4 @@
-package ch.middleware;
+package asl.middleware;
 import java.net.InetAddress;
 
 public class ClientProxy {

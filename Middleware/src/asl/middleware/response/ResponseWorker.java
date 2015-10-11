@@ -1,9 +1,9 @@
-package ch.middleware.response;
+package asl.middleware.response;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import ch.middleware.ClientProxy;
+import asl.middleware.ClientProxy;
 
 public class ResponseWorker implements Runnable {
 
