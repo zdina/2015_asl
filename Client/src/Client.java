@@ -13,54 +13,68 @@ public class Client {
 
 	private Socket socket;
 	private PrintWriter out;
-	private BufferedReader in;
+	
+	private String socketName;
+	private int port;
+	
+//	private BufferedReader in;
+	
+	private final int RESPONSE_PORT = 1234;
 
 	private int messageLength;
 
 	// "Dinas-MacBook-Air.local"
 	// 4321
-	public Client(String socketName, int socketPort, int messageLength) throws InterruptedException, IOException {
-		try {
-			socket = new Socket(socketName, socketPort);
-			out = new PrintWriter(socket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(
-					socket.getInputStream()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public Client(String socketName, int port, int messageLength)
+			throws InterruptedException, IOException, Exception {
+		this.socketName = socketName;
+		this.port = port;
+//		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		this.messageLength = messageLength;
+		
+		ResponseAcceptor ra = new ResponseAcceptor(RESPONSE_PORT);
+		Thread t = new Thread(ra);
+		t.start();
+		
 		register();
+	}
+	
+	private void startConnection() throws Exception {
+		socket = new Socket(socketName, port);
+		out = new PrintWriter(socket.getOutputStream(), true);
+	}
+	
+	private void stopConnection() throws Exception {
 		socket.close();
+		socket = null;
+		out = null;
 	}
 
-	private void register() throws IOException {
-		out.println(Util.REGISTER_REQUEST_CODE + " " + name);
-//		System.out.println(in.readLine());
-		// try {
-		// this.id = Integer.parseInt(in.readLine());
-		// System.out.println(id);
-		// } catch (IOException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// register();
-		// }
+	private void register() throws Exception {
+		startConnection();
+		String request = Util.REGISTER_REQUEST_CODE + " " + name + " " + RESPONSE_PORT;
+		out.println(request);
+		System.out.println("Request sent: " + request);
+		// receive confirmation!
+		stopConnection();
+
 	}
 
 	public static void main(String[] args) throws Exception {
-		Client c = new Client("Dinas-MacBook-Air.local", 4321, 200);
+		Client c = new Client("10.0.1.70", 4321, 200);
 	}
 
 	private void askForContacts() {
-		out.println(Util.CONTACTS_REQUEST_CODE);
-		try {
-			String contactsLine = in.readLine();
-			String[] contactStrings = contactsLine.split(" ");
-			contacts = new int[contactStrings.length];
-			for (int i = 0; i < contacts.length; i++)
-				contacts[i] = Integer.parseInt(contactStrings[i]);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		out.println(Util.CONTACTS_REQUEST_CODE);
+//		try {
+//			String contactsLine = in.readLine();
+//			String[] contactStrings = contactsLine.split(" ");
+//			contacts = new int[contactStrings.length];
+//			for (int i = 0; i < contacts.length; i++)
+//				contacts[i] = Integer.parseInt(contactStrings[i]);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public void sendMessage(int receiverId) {
@@ -68,15 +82,15 @@ public class Client {
 		out.println(message.getSendRequest());
 	}
 
-	public String receiveMessage() {
-		String line = "";
-		try {
-			line = in.readLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return line;
-	}
+//	public String receiveMessage() {
+//		String line = "";
+//		try {
+//			line = in.readLine();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return line;
+//	}
 
 	public void createQueue() {
 		// send to multiple people?

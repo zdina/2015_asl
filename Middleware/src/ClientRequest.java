@@ -1,16 +1,14 @@
-import java.net.Socket;
+import java.net.InetAddress;
 
 public class ClientRequest {
 
 	private String request;
-	private Socket client;
-	
-	public ClientRequest(String request) {
-		this.request = request;
-	}
+	private InetAddress address;
+	private int port;
 
-	public ClientRequest(Socket client, String request) {
-		this.client = client;
+	public ClientRequest(InetAddress adress, int port, String request) {
+		this.address = adress;
+		this.port = port;
 		this.request = request;
 	}
 
@@ -18,7 +16,11 @@ public class ClientRequest {
 		return request;
 	}
 
-	public Socket getClient() {
-		return client;
+	public InetAddress getAddress() {
+		return address;
+	}
+
+	public int getPort() {
+		return port;
 	}
 }

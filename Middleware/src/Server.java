@@ -10,7 +10,7 @@ public class Server {
 
 	// 4321
 	public Server(int port) throws Exception {
-		System.out.println("Server started");
+		System.out.println("Server started.");
 		requestQueue = new LinkedList<ClientRequest>();
 		this.port = port;
 		startRequestProcessor();

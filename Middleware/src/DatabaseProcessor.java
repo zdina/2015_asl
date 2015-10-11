@@ -5,10 +5,9 @@ import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class DatabaseProcessor implements Runnable {
+public class DatabaseProcessor extends Processor {
 
 	public static final int MAX_CONNECTION_POOL_SIZE = 30;
-	public static final int MAX_THREAD_POOL_SIZE = 100;
 	public static final String DRIVER_NAME = "org.postgresql.Driver";
 
 	private static String databaseUrl = "jdbc:postgresql://localhost:5432/asldb";
@@ -16,18 +15,12 @@ public class DatabaseProcessor implements Runnable {
 	private static String password = "";
 
 	private Vector<Connection> connectionPool;
-	private ThreadPoolExecutor executor;
-	private boolean running;
-
-	private Server middleware;
 
 	public DatabaseProcessor(Server middleware) throws Exception {
+		super(middleware);
 		connectionPool = new Vector<Connection>();
-		executor = (ThreadPoolExecutor) Executors
-				.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
-		this.middleware = middleware;
-		running = true;
 		initializeConnectionPool();
+		System.out.println("DatabaseProcessor started.");
 	}
 
 	public void run() {
@@ -42,22 +35,14 @@ public class DatabaseProcessor implements Runnable {
 		}
 	}
 
-	public void shutdown() {
-		running = false;
-		executor.shutdown();
-	}
-
 	// public static void main(String[] args) throws Exception {
 	// new DatabaseProcessor();
 	// }
 
 	private void initializeConnectionPool() {
-		while (connectionPool.size() < MAX_CONNECTION_POOL_SIZE) {
-			System.out
-					.println("Connection Pool is NOT full. Proceeding with adding new connections");
+		while (connectionPool.size() < MAX_CONNECTION_POOL_SIZE)
 			connectionPool.addElement(createNewConnectionForPool());
-		}
-		System.out.println("Connection Pool is full.");
+
 	}
 
 	private Connection createNewConnectionForPool() {
@@ -67,7 +52,6 @@ public class DatabaseProcessor implements Runnable {
 			Class.forName(DRIVER_NAME);
 			connection = DriverManager.getConnection(databaseUrl, userName,
 					password);
-			System.out.println("Connection: " + connection);
 		} catch (SQLException sqle) {
 			System.err.println("SQLException: " + sqle);
 			return null;

@@ -26,7 +26,7 @@ public class DatabaseWorker implements Runnable {
 			ps.executeUpdate();
 			ResultSet generatedId = ps.getGeneratedKeys();
 			generatedId.next();
-			System.out.println(generatedId.getLong(1));
+			System.out.println("Inserted id for '" + cr.getRequest() + "': " + generatedId.getLong(1));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

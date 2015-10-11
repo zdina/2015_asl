@@ -1,21 +1,14 @@
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
-public class RequestProcessor implements Runnable {
+public class RequestProcessor extends Processor {
 
 	private ServerSocket server;
-	private Server middleware;
-
-	private ThreadPoolExecutor executor;
-	private boolean running;
 
 	public RequestProcessor(int port, Server middleware) throws Exception {
+		super(middleware);
 		server = new ServerSocket(port);
-		this.middleware = middleware;
-		executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-		running = true;
+		System.out.println("RequestProcessor started.");
 	}
 
 	public void run() {
@@ -33,11 +26,6 @@ public class RequestProcessor implements Runnable {
 			count++;
 		}
 
-	}
-
-	public void shutdown() {
-		running = false;
-		executor.shutdown();
 	}
 
 	// public static void main(String[] args) throws Exception {
