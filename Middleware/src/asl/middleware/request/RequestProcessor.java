@@ -17,17 +17,15 @@ public class RequestProcessor extends Processor {
 
 	public void run() {
 
-		int count = 1;
 		while (running) {
 			RequestWorker cw;
 			try {
-				cw = new RequestWorker(server.accept(), count, middleware);
+				cw = new RequestWorker(server.accept(), middleware);
 				executor.execute(cw);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			count++;
 		}
 
 	}

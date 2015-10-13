@@ -48,19 +48,36 @@ public class RequestHandler {
 
 	/*
 	 * Register Request: code _ port
+	 * Checks first, whether client exists already (based on IP and port)
+	 * If exists, returns the id found
+	 * Else, inserts new entry and returns this entry's id
 	 */
 	private void register() throws SQLException {
-		String query = "INSERT INTO " + Util.CLIENT_TABLE
-				+ "(ip, port) VALUES('" + cp.getAddress().getHostName()
-				+ "',?)";
-		PreparedStatement stmt = con.prepareStatement(query,
-				Statement.RETURN_GENERATED_KEYS);
-		stmt.setInt(1, Integer.parseInt(requestParts[1]));
-		stmt.executeUpdate();
-		ResultSet generatedId = stmt.getGeneratedKeys();
-		generatedId.next();
-		long id = generatedId.getLong(1);
-		System.out.println("Inserted id for '" + cp.getRequest() + "': " + id);
+		String ip = cp.getAddress().getHostName();
+		int port = Integer.parseInt(requestParts[1]);
+
+		long id;
+
+		String query = "SELECT id FROM " + Util.CLIENT_TABLE + " WHERE ip = '"
+				+ ip + "' AND port = " + port;
+		PreparedStatement stmt = con.prepareStatement(query);
+		ResultSet oldId = stmt.executeQuery();
+		if (oldId.next()) {
+			id = oldId.getLong(1);
+		} else {
+
+			String insert = "INSERT INTO " + Util.CLIENT_TABLE
+					+ "(ip, port) VALUES('" + ip + "',?)";
+			PreparedStatement stmt2 = con.prepareStatement(insert,
+					Statement.RETURN_GENERATED_KEYS);
+			stmt2.setInt(1, port);
+			stmt2.executeUpdate();
+			ResultSet generatedId = stmt2.getGeneratedKeys();
+			generatedId.next();
+			id = generatedId.getLong(1);
+			System.out.println("Inserted id for '" + cp.getRequest() + "': " + id);
+		}
+		
 		response = Util.REGISTER_RESPONSE_CODE + " " + id;
 	}
 
@@ -84,8 +101,7 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Remove Queue Request: code _ port _ id.
-	 * Can't delete queue, if there are
+	 * Remove Queue Request: code _ port _ id. Can't delete queue, if there are
 	 * still messages. delete from queue as q where q.id = 5 and (select
 	 * count(m.id) from message as m where m.queueid = 5) = 0;
 	 */

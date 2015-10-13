@@ -28,14 +28,12 @@ public class DatabaseProcessor extends Processor {
 	}
 
 	public void run() {
-		int count = 1;
 		while (running) {
 			ClientProxy cr = middleware.removeFromRequestQueue();
 			if (cr != null) {
 				DatabaseWorker dw = new DatabaseWorker(this, middleware, cr);
 				executor.execute(dw);
 			}
-			count++;
 		}
 	}
 

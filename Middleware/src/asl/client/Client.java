@@ -31,7 +31,7 @@ public class Client implements Runnable {
 
 	public void run() {
 		try {
-//			rs.register();
+			rs.register();
 //			rs.createQueue();
 //			rs.removeQueue(queues.get(0));
 		} catch (Exception e) {

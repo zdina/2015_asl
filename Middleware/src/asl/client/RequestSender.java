@@ -48,12 +48,6 @@ public class RequestSender {
 	}
 	
 	public void createQueue() {
-		// send to multiple people?
-		// query for queues where messages for them are waiting.. return at most
-		// one? or return one per queue? or just queue ids?
-		// store a file with client id on the client machine once registered?
-		// what does receiving mean?
-		// sequential message sending? i.e. always have to wait for reply before sending next message?
 		String request = Util.CREATE_QUEUE_REQUEST_CODE + " " + ownPort;
 		executeRequest(request);
 	}

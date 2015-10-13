@@ -1,4 +1,5 @@
 package asl.middleware.request;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,12 +17,10 @@ import asl.middleware.Server;
 class RequestWorker implements Runnable {
 
 	private Socket client;
-	private int number;
 	private Server rp;
 
-	public RequestWorker(Socket client, int number, Server rp) {
+	public RequestWorker(Socket client, Server rp) {
 		this.client = client;
-		this.number = number;
 		this.rp = rp;
 	}
 
@@ -31,7 +30,7 @@ class RequestWorker implements Runnable {
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					client.getInputStream()));
 			String line = in.readLine();
-			System.out.println("Request worker " + number
+			System.out.println("Request worker " + this.toString()
 					+ " processing request: " + line);
 			String[] splitted = line.split(" ");
 			ClientProxy cr = new ClientProxy(client.getInetAddress(),
