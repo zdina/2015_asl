@@ -34,9 +34,8 @@ class RequestWorker implements Runnable {
 			System.out.println("Request worker " + number
 					+ " processing request: " + line);
 			String[] splitted = line.split(" ");
-			int size = splitted.length;
 			ClientProxy cr = new ClientProxy(client.getInetAddress(),
-					Integer.parseInt(splitted[size - 1]), line);
+					Integer.parseInt(splitted[1]), line);
 			rp.addToRequestQueue(cr);
 
 			// out = new PrintWriter(new Socket(cr.getAddress(),

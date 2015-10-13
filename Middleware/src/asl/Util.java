@@ -11,6 +11,7 @@ public class Util {
 	public static final int PEEK_QUEUE_REQUEST_CODE = 6;
 	public static final int POP_SENDER_QUERY_REQUEST_CODE = 7;
 	public static final int PEEK_SENDER_QUERY_REQUEST_CODE = 8;
+	public static final int QUERY_QUEUES_REQUEST_CODE = 9;
 	
 	public static final int NO_RECEIVER_CODE = 0;
 	
@@ -23,8 +24,10 @@ public class Util {
 	public static final int PEEK_QUEUE_RESPONSE_CODE = 106;
 	public static final int POP_SENDER_QUERY_RESPONSE_CODE = 107;
 	public static final int PEEK_SENDER_QUERY_RESPONSE_CODE = 108;
+	public static final int QUERY_QUEUES_RESPONSE_CODE = 9;
 	
 	public static final String CLIENT_TABLE = "client";
 	public static final String MESSAGE_TABLE = "message";
+	public static final String QUEUE_TABLE = "queue";
 
 }
