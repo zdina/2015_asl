@@ -41,7 +41,10 @@ public class RequestHandler {
 				queryForQueuesWithMessages();
 				break;
 			case Util.PEEK_QUEUE_REQUEST_CODE:
-				peekQueue();
+				peekQueue(false);
+				break;
+			case Util.POP_QUEUE_REQUEST_CODE:
+				peekQueue(true);
 				break;
 			default:
 				// unclear message
@@ -174,12 +177,12 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Peek Queue: code _ port _ receiverid _ queueid
+	 * Peek (or pop if param true) Queue: code _ port _ receiverid _ queueid
 	 */
-	private void peekQueue() throws SQLException {
+	private void peekQueue(boolean pop) throws SQLException {
 		long receiverId = Long.parseLong(requestParts[2]);
 		long queueId = Long.parseLong(requestParts[3]);
-		String query = "SELECT content from " + Util.MESSAGE_TABLE
+		String query = "SELECT content, id from " + Util.MESSAGE_TABLE
 				+ " WHERE times = (SELECT min(times) from "
 				+ Util.MESSAGE_TABLE
 				+ " WHERE (receiverid = ? OR receiverid = 0) AND queueid = ?)";
@@ -187,11 +190,22 @@ public class RequestHandler {
 		stmt.setLong(1, receiverId);
 		stmt.setLong(2, queueId);
 		ResultSet rs = stmt.executeQuery();
-		response = Util.PEEK_QUEUE_RESPONSE_CODE + " " + queueId;
-		if (rs.next())
+		if (pop)
+			response = Util.POP_QUEUE_RESPONSE_CODE + " " + queueId;
+		else
+			response = Util.PEEK_QUEUE_RESPONSE_CODE + " " + queueId;
+		if (rs.next()) {
 			response += " " + rs.getString(1);
-		else {
-			String check = "SELECT count(id) from " + Util.QUEUE_TABLE + " WHERE id = ?";
+			if (pop) {
+				String delete = "DELETE FROM " + Util.MESSAGE_TABLE
+						+ " WHERE id = ?";
+				PreparedStatement delStmt = con.prepareStatement(delete);
+				delStmt.setLong(1, rs.getLong(2));
+				delStmt.executeUpdate();
+			}
+		} else {
+			String check = "SELECT count(id) from " + Util.QUEUE_TABLE
+					+ " WHERE id = ?";
 			PreparedStatement checkStmt = con.prepareStatement(check);
 			checkStmt.setLong(1, queueId);
 			ResultSet checkRs = checkStmt.executeQuery();

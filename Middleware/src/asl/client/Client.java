@@ -72,7 +72,7 @@ public class Client implements Runnable {
 			rs.createQueue(); // or check for queues that hold messages!
 		else if (Math.random() < 0.7) {
 			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-			rs.peekQueue(randomQueue);
+			rs.popQueue(randomQueue);
 		}
 		else if (Math.random() < 0.7) {
 			long randomQueue = queues.get((int) (Math.random() * queues.size()));
