@@ -27,16 +27,11 @@ public class DatabaseWorker implements Runnable {
 		while (con == null)
 			con = dp.getConnectionFromPool();
 
-		try {
-			RequestHandler rt = new RequestHandler(cr, con);
-			String response = rt.getResponse();
-			if (response != null) {
-				cr.setResponse(response);
-				middleware.addToResponseQueue(cr);
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		RequestHandler rt = new RequestHandler(cr, con);
+		String response = rt.getResponse();
+		if (response != null) {
+			cr.setResponse(response);
+			middleware.addToResponseQueue(cr);
 		}
 
 		dp.returnConnectionToPool(con);

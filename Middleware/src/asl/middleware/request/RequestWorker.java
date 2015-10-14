@@ -35,14 +35,15 @@ class RequestWorker implements Runnable {
 			String[] splitted = line.split(" ");
 			ClientProxy cr = new ClientProxy(client.getInetAddress(),
 					Integer.parseInt(splitted[1]), line);
+			client.close();
 			rp.addToRequestQueue(cr);
 
 			// out = new PrintWriter(new Socket(cr.getAddress(),
 			// Integer.parseInt(splitted[size-1])).getOutputStream(), true);
 			// out.println("request received");
 		} catch (IOException e) {
-			System.out.println("in or out failed");
-			System.exit(-1);
+			System.out.println("Request worker failed: " + this.toString());
+			e.printStackTrace();
 		}
 	}
 }

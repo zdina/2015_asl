@@ -17,28 +17,32 @@ public class RequestHandler {
 	private ClientProxy cp;
 	private String response;
 
-	public RequestHandler(ClientProxy cp, Connection con) throws SQLException {
+	public RequestHandler(ClientProxy cp, Connection con) {
 		this.cp = cp;
 		this.con = con;
 		requestParts = cp.getRequest().split(" ");
 		int requestCode = Integer.parseInt(requestParts[0]);
 
-		switch (requestCode) {
-		case Util.REGISTER_REQUEST_CODE:
-			register();
-			break;
-		case Util.SEND_REQUEST_CODE:
-			send();
-			break;
-		case Util.CREATE_QUEUE_REQUEST_CODE:
-			createQueue();
-			break;
-		case Util.REMOVE_QUEUE_REQUEST_CODE:
-			removeQueue();
-			break;
-		default:
-			// unclear message
-			break;
+		try {
+			switch (requestCode) {
+			case Util.REGISTER_REQUEST_CODE:
+				register();
+				break;
+			case Util.SEND_REQUEST_CODE:
+				send();
+				break;
+			case Util.CREATE_QUEUE_REQUEST_CODE:
+				createQueue();
+				break;
+			case Util.REMOVE_QUEUE_REQUEST_CODE:
+				removeQueue();
+				break;
+			default:
+				// unclear message
+				break;
+			}
+		} catch (SQLException e) {
+			response = Util.SQL_ERROR + "";
 		}
 	}
 
@@ -47,10 +51,9 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Register Request: code _ port
-	 * Checks first, whether client exists already (based on IP and port)
-	 * If exists, returns the id found
-	 * Else, inserts new entry and returns this entry's id
+	 * Register Request: code _ port Checks first, whether client exists already
+	 * (based on IP and port) If exists, returns the id found Else, inserts new
+	 * entry and returns this entry's id
 	 */
 	private void register() throws SQLException {
 		String ip = cp.getAddress().getHostName();
@@ -75,9 +78,10 @@ public class RequestHandler {
 			ResultSet generatedId = stmt2.getGeneratedKeys();
 			generatedId.next();
 			id = generatedId.getLong(1);
-			System.out.println("Inserted id for '" + cp.getRequest() + "': " + id);
+			System.out.println("Inserted id for '" + cp.getRequest() + "': "
+					+ id);
 		}
-		
+
 		response = Util.REGISTER_RESPONSE_CODE + " " + id;
 	}
 
@@ -102,8 +106,7 @@ public class RequestHandler {
 
 	/*
 	 * Remove Queue Request: code _ port _ id. Can't delete queue, if there are
-	 * still messages. delete from queue as q where q.id = 5 and (select
-	 * count(m.id) from message as m where m.queueid = 5) = 0;
+	 * still messages.
 	 */
 	private void removeQueue() throws SQLException {
 		long queueId = Long.parseLong(requestParts[2]);
@@ -116,28 +119,47 @@ public class RequestHandler {
 		int rows = stmt.executeUpdate();
 		if (rows == 1)
 			response = Util.REMOVE_QUEUE_RESPONSE_CODE + " " + queueId;
-		// !!
+		else
+			response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
 	}
 
 	/*
 	 * Message Send Request: code _ port _ senderId _ receiverId _ queueId _
 	 * content
 	 */
-	private void send() throws SQLException {
+	private void send() {
 		long senderId = Long.parseLong(requestParts[2]);
 		long receiverId = Long.parseLong(requestParts[3]);
 		long queueId = Long.parseLong(requestParts[4]);
 		String content = requestParts[4];
 
-		String query = "INSERT INTO TABLE " + Util.MESSAGE_TABLE
-				+ "VALUES(?, ?, ?)";
-		PreparedStatement stmt = con.prepareStatement(query,
-				Statement.RETURN_GENERATED_KEYS);
-		stmt.setLong(1, senderId);
-		stmt.setLong(2, receiverId);
-		stmt.setLong(3, queueId);
-		stmt.setString(3, content);
-		// !!
+		String insert = "INSERT INTO " + Util.MESSAGE_TABLE
+				+ "(senderid, receiverid, content, queueid) VALUES(?, ?, ?, ?)";
+		PreparedStatement stmt;
+		try {
+			stmt = con
+					.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
+			stmt.setLong(1, senderId);
+			stmt.setLong(2, receiverId);
+			stmt.setString(3, content);
+			stmt.setLong(4, queueId);
+			stmt.executeUpdate();
+			ResultSet generatedId = stmt.getGeneratedKeys();
+			generatedId.next();
+			long id = generatedId.getLong(1);
+			response = Util.SEND_RESPONSE_CODE + " " + id;
+		} catch (SQLException e) {
+			String errorMessage = e.getMessage();
+			if (errorMessage.contains("receiverid"))
+				response = Util.WRONG_RECEIVER_ID_ERROR + " " + receiverId;
+			else if (errorMessage.contains("queueid"))
+				response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
+			else if (errorMessage.contains("senderid"))
+				response = Util.WRONG_SENDER_ID_ERROR + " " + senderId;
+			else
+				response = Util.SQL_ERROR + " ";
+		}
+
 	}
 
 	/*

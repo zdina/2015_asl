@@ -11,14 +11,12 @@ public class Server {
 	private static Queue<ClientProxy> requestQueue;
 	private static Queue<ClientProxy> responseQueue;
 
-	private int port;
-
 	// 4321
 	public Server(int port) throws Exception {
 		System.out.println("Server started.");
 		requestQueue = new LinkedList<ClientProxy>();
 		responseQueue = new LinkedList<ClientProxy>();
-		this.port = port;
+		
 		startProcessor(new RequestProcessor(port, this));
 		startProcessor(new DatabaseProcessor(this));
 		startProcessor(new ResponseProcessor(this));

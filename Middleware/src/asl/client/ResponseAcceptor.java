@@ -25,6 +25,7 @@ public class ResponseAcceptor implements Runnable {
 				BufferedReader in = new BufferedReader(new InputStreamReader(
 						middleware.getInputStream()));
 				String line = in.readLine();
+				middleware.close();
 				if (line != null) {
 					System.out.println("Response received: " + line);
 					rh.processResponse(line);

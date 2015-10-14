@@ -20,8 +20,8 @@ public class ResponseWorker implements Runnable {
 			out.println(cp.getResponse());
 			client.close();
 		} catch (IOException e) {
-			System.out.println("in or out failed");
-			System.exit(-1);
+			System.out.println("Response worker failed: " + cp.getRequest());
+			e.printStackTrace();
 		}
 	}
 

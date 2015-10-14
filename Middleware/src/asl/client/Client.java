@@ -27,11 +27,13 @@ public class Client implements Runnable {
 				new ResponseHandler(this));
 		Thread t = new Thread(ra);
 		t.start();
+		System.out.println("Client " + this.toString() + " started.");
 	}
 
 	public void run() {
 		try {
 			rs.register();
+			
 //			rs.createQueue();
 //			rs.removeQueue(queues.get(0));
 		} catch (Exception e) {
@@ -52,6 +54,17 @@ public class Client implements Runnable {
 		rs.setId(id);
 	}
 	
+	public void register() {
+		rs.register();
+	}
+	
+	public void nextRequest() {
+		// here should be a random request chosen to be generated
+		// Thread.sleep(2000);
+		// makes the requests sequential and the server ALWAYS has to reply!
+		rs.sendMessage(100, generateContent(), 100);
+	}
+	
 	private String generateContent() {
 		String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		Random rnd = new Random();
@@ -63,8 +76,8 @@ public class Client implements Runnable {
 
 	public static void main(String[] args) throws Exception {
 		new Thread(new Client("10.0.1.70", 4321, 1234, 200)).start();
-//		new Thread(new Client("10.0.1.70", 4321, 2345, 200)).start();
-//		new Thread(new Client("10.0.1.70", 4321, 3456, 200)).start();
+		new Thread(new Client("10.0.1.70", 4321, 2345, 200)).start();
+		new Thread(new Client("10.0.1.70", 4321, 3456, 200)).start();
 	}
 
 	// public void sendMessage(int receiverId) {

@@ -12,9 +12,9 @@ public class ResponseHandler {
 	
 	public void processResponse(String response) {
 		String[] responseParts = response.split(" ");
-		int requestCode = Integer.parseInt(responseParts[0]);
+		int responseCode = Integer.parseInt(responseParts[0]);
 		
-		switch (requestCode) {
+		switch (responseCode) {
 		case Util.REGISTER_RESPONSE_CODE:
 			handleRegisterResponse(responseParts);
 			break;
@@ -25,12 +25,44 @@ public class ResponseHandler {
 			break;
 		case Util.REMOVE_QUEUE_RESPONSE_CODE:
 			handleRemoveQueueResponse(responseParts);
+			break;
+		case Util.WRONG_QUEUE_ID_ERROR:
+			handleRemoveQueueResponse(responseParts);
+			break;
+		case Util.WRONG_SENDER_ID_ERROR:
+			handleWrongSenderIdError();
+			break;
+		case Util.WRONG_RECEIVER_ID_ERROR:
+			handleWrongReceiverId(responseParts);
+			break;
+		case Util.SQL_ERROR:
+			handleSQLError();
+			break;
 		default:
-			// unclear message
+			System.out.println(responseCode);
+			handleUnknownResponseCode();
 			break;
 		}
+		
+		if (responseCode != Util.WRONG_SENDER_ID_ERROR)
+			c.nextRequest();
 	}
 	
+	private void handleWrongReceiverId(String[] responseParts) {
+		long id = Long.parseLong(responseParts[1]);
+		// do something with wrong receiver id
+	}
+
+	private void handleSQLError() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void handleUnknownResponseCode() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	/*
 	 * Register response:
 	 * code _ id
@@ -48,6 +80,10 @@ public class ResponseHandler {
 	private void handleRemoveQueueResponse(String[] responseParts) {
 		long id = Long.parseLong(responseParts[1]);
 		c.removeQueueId(id);
+	}
+	
+	private void handleWrongSenderIdError() {
+		c.register();
 	}
 
 }
