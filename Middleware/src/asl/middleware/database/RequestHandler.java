@@ -37,12 +37,18 @@ public class RequestHandler {
 			case Util.REMOVE_QUEUE_REQUEST_CODE:
 				removeQueue();
 				break;
+			case Util.QUERY_QUEUES_REQUEST_CODE:
+				queryForQueuesWithMessages();
+				break;
+			case Util.PEEK_QUEUE_REQUEST_CODE:
+				peekQueue();
+				break;
 			default:
 				// unclear message
 				break;
 			}
 		} catch (SQLException e) {
-			response = Util.SQL_ERROR + "";
+			response = Util.SQL_ERROR + " " + e.getMessage();
 		}
 	}
 
@@ -108,19 +114,24 @@ public class RequestHandler {
 	 * Remove Queue Request: code _ port _ id. Can't delete queue, if there are
 	 * still messages.
 	 */
-	private void removeQueue() throws SQLException {
+	private void removeQueue() {
 		long queueId = Long.parseLong(requestParts[2]);
 		String query = "DELETE FROM " + Util.QUEUE_TABLE
 				+ " AS q WHERE q.id = ? AND (SELECT COUNT(m.id) FROM "
 				+ Util.MESSAGE_TABLE + " AS m WHERE m.queueid = ?) = 0";
-		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, queueId);
-		stmt.setLong(2, queueId);
-		int rows = stmt.executeUpdate();
-		if (rows == 1)
-			response = Util.REMOVE_QUEUE_RESPONSE_CODE + " " + queueId;
-		else
-			response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
+		try {
+			PreparedStatement stmt = con.prepareStatement(query);
+			stmt.setLong(1, queueId);
+			stmt.setLong(2, queueId);
+			int rows = stmt.executeUpdate();
+			if (rows == 1)
+				response = Util.REMOVE_QUEUE_RESPONSE_CODE + " " + queueId;
+			else
+				response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
+			// handle if queue is used!!!!!
+		} catch (SQLException e) {
+			response = Util.QUEUE_IN_USE + " " + queueId;
+		}
 	}
 
 	/*
@@ -131,7 +142,7 @@ public class RequestHandler {
 		long senderId = Long.parseLong(requestParts[2]);
 		long receiverId = Long.parseLong(requestParts[3]);
 		long queueId = Long.parseLong(requestParts[4]);
-		String content = requestParts[4];
+		String content = requestParts[5];
 
 		String insert = "INSERT INTO " + Util.MESSAGE_TABLE
 				+ "(senderid, receiverid, content, queueid) VALUES(?, ?, ?, ?)";
@@ -163,10 +174,50 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Peek Queue: code _ port _
+	 * Peek Queue: code _ port _ receiverid _ queueid
 	 */
 	private void peekQueue() throws SQLException {
+		long receiverId = Long.parseLong(requestParts[2]);
+		long queueId = Long.parseLong(requestParts[3]);
+		String query = "SELECT content from " + Util.MESSAGE_TABLE
+				+ " WHERE times = (SELECT min(times) from "
+				+ Util.MESSAGE_TABLE
+				+ " WHERE (receiverid = ? OR receiverid = 0) AND queueid = ?)";
+		PreparedStatement stmt = con.prepareStatement(query);
+		stmt.setLong(1, receiverId);
+		stmt.setLong(2, queueId);
+		ResultSet rs = stmt.executeQuery();
+		response = Util.PEEK_QUEUE_RESPONSE_CODE + " " + queueId;
+		if (rs.next())
+			response += " " + rs.getString(1);
+		else {
+			String check = "SELECT count(id) from " + Util.QUEUE_TABLE + " WHERE id = ?";
+			PreparedStatement checkStmt = con.prepareStatement(check);
+			checkStmt.setLong(1, queueId);
+			ResultSet checkRs = checkStmt.executeQuery();
+			checkRs.next();
+			if (checkRs.getInt(1) == 0)
+				response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
+		}
+	}
 
+	/*
+	 * Query for queues with messages: code _ port _ receiverid
+	 */
+	public void queryForQueuesWithMessages() throws SQLException {
+		long receiverid = Long.parseLong(requestParts[2]);
+		String query = "SELECT DISTINCT queueid FROM " + Util.MESSAGE_TABLE
+				+ " WHERE receiverid = ?";
+		PreparedStatement stmt = con.prepareStatement(query);
+		stmt.setLong(1, receiverid);
+		ResultSet rs = stmt.executeQuery();
+		String result = "";
+		int resultNum = 0;
+		while (rs.next()) {
+			result += " " + rs.getLong(1);
+			resultNum++;
+		}
+		response = Util.QUERY_QUEUES_RESPONSE_CODE + " " + resultNum + result;
 	}
 
 }

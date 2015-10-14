@@ -70,7 +70,7 @@ public class RequestSender {
 		executeRequest(request);
 	}
 	
-	public void pollQueue(long queueId) {
+	public void popQueue(long queueId) {
 		String request = Util.POP_QUEUE_REQUEST_CODE + " " + ownPort + " " + ownId + " " + queueId;
 		executeRequest(request);
 	}

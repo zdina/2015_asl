@@ -24,12 +24,13 @@ public class Util {
 	public static final int PEEK_QUEUE_RESPONSE_CODE = 106;
 	public static final int POP_SENDER_QUERY_RESPONSE_CODE = 107;
 //	public static final int PEEK_SENDER_QUERY_RESPONSE_CODE = 108;
-	public static final int QUERY_QUEUES_RESPONSE_CODE = 9;
+	public static final int QUERY_QUEUES_RESPONSE_CODE = 109;
 	
 	public static final int SQL_ERROR = 1000;
 	public static final int WRONG_SENDER_ID_ERROR = 1001;
 	public static final int WRONG_RECEIVER_ID_ERROR = 1002;
 	public static final int WRONG_QUEUE_ID_ERROR = 1004;
+	public static final int QUEUE_IN_USE = 1005;
 	
 	
 	public static final String CLIENT_TABLE = "client";
