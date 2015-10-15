@@ -70,6 +70,8 @@ public class Client implements Runnable {
 		
 		if (queues.isEmpty())
 			rs.createQueue(); // or check for queues that hold messages!
+		else if (Math.random() < 0.7)
+			rs.queryFromSender(1);
 		else if (Math.random() < 0.7) {
 			long randomQueue = queues.get((int) (Math.random() * queues.size()));
 			rs.popQueue(randomQueue);

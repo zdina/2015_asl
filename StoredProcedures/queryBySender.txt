@@ -1,0 +1,23 @@
+DROP FUNCTION IF EXISTS querybysender(bigint, bigint);
+CREATE or REPLACE FUNCTION queryBySender(rid BIGINT, sid BIGINT) RETURNS text AS
+$result$
+DECLARE
+  result text;
+  idcount integer;
+BEGIN
+
+SELECT content INTO result FROM message WHERE times = (SELECT min(times) FROM message WHERE receiverid = rid AND senderid = sid);
+
+IF result IS NULL THEN
+  SELECT count(id) INTO idcount FROM client WHERE id = sid;
+  IF idcount = 0 THEN
+    result := 'nosender';
+  ELSE
+    result := 'empty';
+  END IF;
+END IF;
+
+RETURN result;
+END;
+$result$
+LANGUAGE 'plpgsql';

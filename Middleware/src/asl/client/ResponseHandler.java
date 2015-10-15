@@ -41,6 +41,9 @@ public class ResponseHandler {
 		case Util.WRONG_RECEIVER_ID_ERROR:
 			handleWrongReceiverId(responseParts);
 			break;
+		case Util.POP_SENDER_QUERY_RESPONSE_CODE:
+			handleQueryBySender(responseParts);
+			break;
 		case Util.QUEUE_IN_USE:
 			handleQueueInUse(responseParts);
 			break;
@@ -57,6 +60,19 @@ public class ResponseHandler {
 			c.nextRequest();
 	}
 	
+	private void handleQueryBySender(String[] responseParts) {
+		long senderId = Long.parseLong(responseParts[1]);
+		if (responseParts.length == 3) {
+			String message = responseParts[2];
+			// do something with the message (log)
+			System.out.println("Message received: " + message);
+		}
+		else {
+			// no message contained in this queue for this receiver
+		}
+		
+	}
+
 	private void handleQueueInUse(String[] responseParts) {
 		// do something
 	}

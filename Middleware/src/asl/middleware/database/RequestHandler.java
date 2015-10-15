@@ -46,6 +46,9 @@ public class RequestHandler {
 			case Util.POP_QUEUE_REQUEST_CODE:
 				peekQueue(true);
 				break;
+			case Util.POP_SENDER_QUERY_REQUEST_CODE:
+				queryBySender();
+				break;
 			default:
 				// unclear message
 				break;
@@ -232,6 +235,29 @@ public class RequestHandler {
 			resultNum++;
 		}
 		response = Util.QUERY_QUEUES_RESPONSE_CODE + " " + resultNum + result;
+	}
+	
+	/*
+	 * Pops message by specific sender
+	 * code _ port _ receiverid _ senderid
+	 * 
+	 */
+	public void queryBySender() throws SQLException {
+		long receiverid = Long.parseLong(requestParts[2]);
+		long senderid = Long.parseLong(requestParts[3]);
+		String query = "SELECT queryBySender(?,?)";
+		PreparedStatement stmt = con.prepareStatement(query);
+		stmt.setLong(1, receiverid);
+		stmt.setLong(2, senderid);
+		ResultSet rs = stmt.executeQuery();
+		rs.next();
+		String dbresponse = rs.getString(1);
+		if (dbresponse.equals("nosender")) 
+			response = Util.WRONG_SENDER_ID_ERROR + " " + senderid;
+		else if (dbresponse.equals("empty"))
+			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid;
+		else
+			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid + " " + dbresponse;
 	}
 
 }
