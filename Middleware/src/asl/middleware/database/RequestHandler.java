@@ -223,18 +223,13 @@ public class RequestHandler {
 	 */
 	public void queryForQueuesWithMessages() throws SQLException {
 		long receiverid = Long.parseLong(requestParts[2]);
-		String query = "SELECT DISTINCT queueid FROM " + Util.MESSAGE_TABLE
-				+ " WHERE receiverid = ?";
+		String query = "SELECT queryForQueues(?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, receiverid);
 		ResultSet rs = stmt.executeQuery();
-		String result = "";
-		int resultNum = 0;
-		while (rs.next()) {
-			result += " " + rs.getLong(1);
-			resultNum++;
-		}
-		response = Util.QUERY_QUEUES_RESPONSE_CODE + " " + resultNum + result;
+		rs.next();
+		String dbresponse = rs.getString(1);
+		response = Util.QUERY_QUEUES_RESPONSE_CODE + " " + dbresponse;
 	}
 	
 	/*
@@ -255,7 +250,7 @@ public class RequestHandler {
 		if (dbresponse.equals("nosender")) 
 			response = Util.WRONG_SENDER_ID_ERROR + " " + senderid;
 		else if (dbresponse.equals("empty"))
-			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid;
+			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid; // sender vs receiver!!
 		else
 			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid + " " + dbresponse;
 	}

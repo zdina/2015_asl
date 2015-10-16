@@ -70,17 +70,17 @@ public class Client implements Runnable {
 		
 		if (queues.isEmpty())
 			rs.createQueue(); // or check for queues that hold messages!
-		else if (Math.random() < 0.7)
-			rs.queryFromSender(1);
-		else if (Math.random() < 0.7) {
-			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-			rs.popQueue(randomQueue);
-		}
-		else if (Math.random() < 0.7) {
-			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-			int receiverId = (int) (Math.random() * numClients + 1); // assuming that the Ids start with 1!!
-			rs.sendMessage(receiverId, generateContent(), randomQueue);
-		}
+//		else if (Math.random() < 0.7)
+//			rs.queryFromSender(1);
+//		else if (Math.random() < 0.7) {
+//			long randomQueue = queues.get((int) (Math.random() * queues.size()));
+//			rs.popQueue(randomQueue);
+//		}
+//		else if (Math.random() < 0.7) {
+//			long randomQueue = queues.get((int) (Math.random() * queues.size()));
+//			int receiverId = (int) (Math.random() * numClients + 1); // assuming that the Ids start with 1!!
+//			rs.sendMessage(receiverId, generateContent(), randomQueue);
+//		}
 		else {
 			rs.queryForQueuesWithMessages();
 		}
@@ -96,8 +96,8 @@ public class Client implements Runnable {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new Thread(new Client("10.0.1.70", 4321, 1234, 200, 3)).start();
-//		new Thread(new Client("10.0.1.70", 4321, 2345, 200, 3)).start();
+//		new Thread(new Client("10.0.1.70", 4321, 1234, 200, 3)).start();
+		new Thread(new Client("10.0.1.70", 4321, 2345, 200, 3)).start();
 //		new Thread(new Client("10.0.1.70", 4321, 3456, 200, 3)).start();
 	}
 
