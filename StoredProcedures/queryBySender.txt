@@ -1,12 +1,13 @@
-DROP FUNCTION IF EXISTS querybysender(bigint, bigint);
-CREATE or REPLACE FUNCTION queryBySender(rid BIGINT, sid BIGINT) RETURNS text AS
+DROP FUNCTION IF EXISTS querybysender(bigint, bigint, boolean);
+CREATE or REPLACE FUNCTION queryBySender(rid BIGINT, sid BIGINT, doDelete BOOLEAN) RETURNS text AS
 $result$
 DECLARE
   result text;
   idcount integer;
+  mid BIGINT;
 BEGIN
 
-SELECT content INTO result FROM message WHERE times = (SELECT min(times) FROM message WHERE receiverid = rid AND senderid = sid);
+SELECT content, id INTO result, mid FROM message WHERE receiverid = rid AND senderid = sid ORDER BY times ASC LIMIT 1;
 
 IF result IS NULL THEN
   SELECT count(id) INTO idcount FROM client WHERE id = sid;
@@ -14,6 +15,10 @@ IF result IS NULL THEN
     result := 'nosender';
   ELSE
     result := 'empty';
+  END IF;
+ELSE
+  IF doDelete = true THEN
+    DELETE FROM message WHERE id = mid;
   END IF;
 END IF;
 

@@ -3,10 +3,12 @@ package asl.middleware.database;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import asl.ErrorCodes;
+import asl.RequestCodes;
+import asl.ResponseCodes;
 import asl.Util;
 import asl.middleware.ClientProxy;
 
@@ -25,36 +27,36 @@ public class RequestHandler {
 
 		try {
 			switch (requestCode) {
-			case Util.REGISTER_REQUEST_CODE:
+			case RequestCodes.REGISTER:
 				register();
 				break;
-			case Util.SEND_REQUEST_CODE:
+			case RequestCodes.SEND_MESSAGE:
 				send();
 				break;
-			case Util.CREATE_QUEUE_REQUEST_CODE:
+			case RequestCodes.CREATE_QUEUE:
 				createQueue();
 				break;
-			case Util.REMOVE_QUEUE_REQUEST_CODE:
+			case RequestCodes.REMOVE_QUEUE:
 				removeQueue();
 				break;
-			case Util.QUERY_QUEUES_REQUEST_CODE:
+			case RequestCodes.QUERY_FOR_QUEUES:
 				queryForQueuesWithMessages();
 				break;
-			case Util.PEEK_QUEUE_REQUEST_CODE:
-				peekQueue(false);
+			case RequestCodes.PEEK_QUEUE:
+				queryByQueue(false);
 				break;
-			case Util.POP_QUEUE_REQUEST_CODE:
-				peekQueue(true);
+			case RequestCodes.POP_QUEUE:
+				queryByQueue(true);
 				break;
-			case Util.POP_SENDER_QUERY_REQUEST_CODE:
-				queryBySender();
+			case RequestCodes.POP_BY_SENDER:
+				queryBySender(true);
 				break;
 			default:
 				// unclear message
 				break;
 			}
 		} catch (SQLException e) {
-			response = Util.SQL_ERROR + " " + e.getMessage();
+			response = ErrorCodes.SQL_ERROR + " " + e.getMessage();
 		}
 	}
 
@@ -94,127 +96,96 @@ public class RequestHandler {
 					+ id);
 		}
 
-		response = Util.REGISTER_RESPONSE_CODE + " " + id;
+		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + id;
 	}
 
 	/*
 	 * Create Queue Request: code _ port
 	 */
 	private void createQueue() throws SQLException {
-		String query = "INSERT INTO " + Util.QUEUE_TABLE + "(name) VALUES(?)";
-		PreparedStatement stmt = con.prepareStatement(query,
-				Statement.RETURN_GENERATED_KEYS);
-		stmt.setString(1, "a");
-		stmt.executeUpdate();
-
-		ResultSet generatedId = stmt.getGeneratedKeys();
-		generatedId.next();
-		long id = generatedId.getLong(1);
-
-		System.out.println("Inserted queue, id: " + id);
-
-		response = Util.CREATE_QUEUE_RESPONSE_CODE + " " + id;
+		String query = "SELECT createQueue()";
+		PreparedStatement stmt = con.prepareStatement(query);
+		ResultSet rs = stmt.executeQuery();
+		rs.next();
+		String dbresponse = rs.getString(1);
+		response = ResponseCodes.CREATE_QUEUE_RESPONSE_CODE + " " + dbresponse;
 	}
 
 	/*
 	 * Remove Queue Request: code _ port _ id. Can't delete queue, if there are
 	 * still messages.
 	 */
-	private void removeQueue() {
+	private void removeQueue() throws SQLException {
 		long queueId = Long.parseLong(requestParts[2]);
-		String query = "DELETE FROM " + Util.QUEUE_TABLE
-				+ " AS q WHERE q.id = ? AND (SELECT COUNT(m.id) FROM "
-				+ Util.MESSAGE_TABLE + " AS m WHERE m.queueid = ?) = 0";
-		try {
-			PreparedStatement stmt = con.prepareStatement(query);
-			stmt.setLong(1, queueId);
-			stmt.setLong(2, queueId);
-			int rows = stmt.executeUpdate();
-			if (rows == 1)
-				response = Util.REMOVE_QUEUE_RESPONSE_CODE + " " + queueId;
-			else
-				response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
-			// handle if queue is used!!!!!
-		} catch (SQLException e) {
-			response = Util.QUEUE_IN_USE + " " + queueId;
-		}
+		String query = "SELECT removeQueue(?)";
+		PreparedStatement stmt = con.prepareStatement(query);
+		stmt.setLong(1, queueId);
+		ResultSet rs = stmt.executeQuery();
+		rs.next();
+		String dbresponse = rs.getString(1);
+		if (dbresponse.equals("noqueue"))
+			response = ErrorCodes.WRONG_QUEUE_ID + " " + queueId;
+		else if (dbresponse.equals("inuse"))
+			response = ErrorCodes.QUEUE_CONTAINS_MESSAGES + " " + queueId;
+		else
+			response = ResponseCodes.REMOVE_QUEUE_RESPONSE_CODE + " " + queueId;
 	}
 
 	/*
 	 * Message Send Request: code _ port _ senderId _ receiverId _ queueId _
 	 * content
 	 */
-	private void send() {
+	private void send() throws SQLException {
 		long senderId = Long.parseLong(requestParts[2]);
 		long receiverId = Long.parseLong(requestParts[3]);
 		long queueId = Long.parseLong(requestParts[4]);
 		String content = requestParts[5];
 
-		String insert = "INSERT INTO " + Util.MESSAGE_TABLE
-				+ "(senderid, receiverid, content, queueid) VALUES(?, ?, ?, ?)";
-		PreparedStatement stmt;
-		try {
-			stmt = con
-					.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
-			stmt.setLong(1, senderId);
-			stmt.setLong(2, receiverId);
-			stmt.setString(3, content);
-			stmt.setLong(4, queueId);
-			stmt.executeUpdate();
-			ResultSet generatedId = stmt.getGeneratedKeys();
-			generatedId.next();
-			long id = generatedId.getLong(1);
-			response = Util.SEND_RESPONSE_CODE + " " + id;
-		} catch (SQLException e) {
-			String errorMessage = e.getMessage();
-			if (errorMessage.contains("receiverid"))
-				response = Util.WRONG_RECEIVER_ID_ERROR + " " + receiverId;
-			else if (errorMessage.contains("queueid"))
-				response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
-			else if (errorMessage.contains("senderid"))
-				response = Util.WRONG_SENDER_ID_ERROR + " " + senderId;
-			else
-				response = Util.SQL_ERROR + " ";
-		}
-
+		String insert = "SELECT sendMessage(?, ?, ?, ?)";
+		PreparedStatement stmt = con.prepareStatement(insert);
+		stmt.setLong(1, senderId);
+		stmt.setLong(2, receiverId);
+		stmt.setLong(3, queueId);
+		stmt.setString(4, content);
+		
+		
+		ResultSet rs = stmt.executeQuery();
+		rs.next();
+		String dbresponse = rs.getString(1);
+		
+		if (dbresponse.equals("noreceiver"))
+			response = ErrorCodes.WRONG_CLIENT_ID + " " + receiverId;
+		else if (dbresponse.equals("noqueue"))
+			response = ErrorCodes.WRONG_QUEUE_ID + " " + queueId;
+		else
+			response = ResponseCodes.SEND_RESPONSE_CODE + "";
 	}
 
 	/*
 	 * Peek (or pop if param true) Queue: code _ port _ receiverid _ queueid
 	 */
-	private void peekQueue(boolean pop) throws SQLException {
-		long receiverId = Long.parseLong(requestParts[2]);
-		long queueId = Long.parseLong(requestParts[3]);
-		String query = "SELECT content, id from " + Util.MESSAGE_TABLE
-				+ " WHERE times = (SELECT min(times) from "
-				+ Util.MESSAGE_TABLE
-				+ " WHERE (receiverid = ? OR receiverid = 0) AND queueid = ?)";
+	public void queryByQueue(boolean doDelete) throws SQLException {
+		long receiverid = Long.parseLong(requestParts[2]);
+		long queueid = Long.parseLong(requestParts[3]);
+		String query = "SELECT queryByQueue(?,?,?)";
 		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, receiverId);
-		stmt.setLong(2, queueId);
+		stmt.setLong(1, receiverid);
+		stmt.setLong(2, queueid);
+		stmt.setBoolean(3, doDelete);
 		ResultSet rs = stmt.executeQuery();
-		if (pop)
-			response = Util.POP_QUEUE_RESPONSE_CODE + " " + queueId;
-		else
-			response = Util.PEEK_QUEUE_RESPONSE_CODE + " " + queueId;
-		if (rs.next()) {
-			response += " " + rs.getString(1);
-			if (pop) {
-				String delete = "DELETE FROM " + Util.MESSAGE_TABLE
-						+ " WHERE id = ?";
-				PreparedStatement delStmt = con.prepareStatement(delete);
-				delStmt.setLong(1, rs.getLong(2));
-				delStmt.executeUpdate();
-			}
-		} else {
-			String check = "SELECT count(id) from " + Util.QUEUE_TABLE
-					+ " WHERE id = ?";
-			PreparedStatement checkStmt = con.prepareStatement(check);
-			checkStmt.setLong(1, queueId);
-			ResultSet checkRs = checkStmt.executeQuery();
-			checkRs.next();
-			if (checkRs.getInt(1) == 0)
-				response = Util.WRONG_QUEUE_ID_ERROR + " " + queueId;
+		rs.next();
+		String dbresponse = rs.getString(1);
+		if (dbresponse.equals("noqueue"))
+			response = ErrorCodes.WRONG_CLIENT_ID + " " + queueid;
+		else {
+			if (doDelete)
+				response = ResponseCodes.POP_QUEUE_RESPONSE_CODE + " ";
+			else
+				response = ResponseCodes.PEEK_QUEUE_RESPONSE_CODE + " ";
+			if (dbresponse.equals("empty"))
+				response += queueid;
+			else
+				response += queueid + " " + dbresponse;
 		}
 	}
 
@@ -229,30 +200,36 @@ public class RequestHandler {
 		ResultSet rs = stmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-		response = Util.QUERY_QUEUES_RESPONSE_CODE + " " + dbresponse;
+		response = ResponseCodes.QUERY_QUEUES_RESPONSE_CODE + " " + dbresponse;
 	}
-	
+
 	/*
-	 * Pops message by specific sender
-	 * code _ port _ receiverid _ senderid
-	 * 
+	 * Pops/peeks message by specific sender: code _ port _ receiverid _
+	 * senderid
 	 */
-	public void queryBySender() throws SQLException {
+	public void queryBySender(boolean doDelete) throws SQLException {
 		long receiverid = Long.parseLong(requestParts[2]);
 		long senderid = Long.parseLong(requestParts[3]);
-		String query = "SELECT queryBySender(?,?)";
+		String query = "SELECT queryBySender(?,?,?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, receiverid);
 		stmt.setLong(2, senderid);
+		stmt.setBoolean(3, doDelete);
 		ResultSet rs = stmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-		if (dbresponse.equals("nosender")) 
-			response = Util.WRONG_SENDER_ID_ERROR + " " + senderid;
-		else if (dbresponse.equals("empty"))
-			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid; // sender vs receiver!!
-		else
-			response = Util.POP_SENDER_QUERY_RESPONSE_CODE + " " + senderid + " " + dbresponse;
+		if (dbresponse.equals("nosender"))
+			response = ErrorCodes.WRONG_CLIENT_ID + " " + senderid;
+		else {
+			if (doDelete)
+				response = ResponseCodes.POP_SENDER_QUERY_RESPONSE_CODE + " ";
+			else
+				response = ResponseCodes.PEEK_SENDER_QUERY_RESPONSE_CODE + " ";
+			if (dbresponse.equals("empty"))
+				response += senderid; // sender vs receiver!!
+			else
+				response += senderid + " " + dbresponse;
+		}
 	}
 
 }

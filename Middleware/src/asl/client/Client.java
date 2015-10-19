@@ -74,15 +74,16 @@ public class Client implements Runnable {
 //			rs.queryFromSender(1);
 //		else if (Math.random() < 0.7) {
 //			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-//			rs.popQueue(randomQueue);
+//			rs.removeQueue(randomQueue);
 //		}
-//		else if (Math.random() < 0.7) {
-//			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-//			int receiverId = (int) (Math.random() * numClients + 1); // assuming that the Ids start with 1!!
-//			rs.sendMessage(receiverId, generateContent(), randomQueue);
-//		}
+		else if (Math.random() < 0.7) {
+			long randomQueue = queues.get((int) (Math.random() * queues.size()));
+			int receiverId = (int) (Math.random() * numClients + 1); // assuming that the Ids start with 1!!
+			rs.sendMessage(receiverId, generateContent(), randomQueue);
+		}
 		else {
-			rs.queryForQueuesWithMessages();
+			rs.createQueue();
+//			rs.queryForQueuesWithMessages();
 		}
 	}
 

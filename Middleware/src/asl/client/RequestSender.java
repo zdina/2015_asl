@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import asl.RequestCodes;
 import asl.Util;
 
 public class RequestSender {
@@ -43,17 +44,17 @@ public class RequestSender {
 	}
 
 	public void register() {
-		String request = Util.REGISTER_REQUEST_CODE + " " + ownPort;
+		String request = RequestCodes.REGISTER + " " + ownPort;
 		executeRequest(request);
 	}
 	
 	public void createQueue() {
-		String request = Util.CREATE_QUEUE_REQUEST_CODE + " " + ownPort;
+		String request = RequestCodes.CREATE_QUEUE + " " + ownPort;
 		executeRequest(request);
 	}
 
 	public void removeQueue(long queueId) {
-		String request = Util.REMOVE_QUEUE_REQUEST_CODE + " " + ownPort + " " + queueId;
+		String request = RequestCodes.REMOVE_QUEUE + " " + ownPort + " " + queueId;
 		executeRequest(request);
 	}
 	
@@ -61,27 +62,27 @@ public class RequestSender {
 	 * Sends message to a queue indicating a receiver (no need for explicit receiver)
 	 */
 	public void sendMessage(long receiverId, String content, long queueId) {
-		String request = Util.SEND_REQUEST_CODE + " " + ownPort + " " + ownId + " " + receiverId + " " + queueId + " " + content + " ";
+		String request = RequestCodes.SEND_MESSAGE + " " + ownPort + " " + ownId + " " + receiverId + " " + queueId + " " + content + " ";
 		executeRequest(request);
 	}
 	
 	public void peekQueue(long queueId) {
-		String request = Util.PEEK_QUEUE_REQUEST_CODE + " " + ownPort + " " + ownId + " " + queueId;
+		String request = RequestCodes.PEEK_QUEUE + " " + ownPort + " " + ownId + " " + queueId;
 		executeRequest(request);
 	}
 	
 	public void popQueue(long queueId) {
-		String request = Util.POP_QUEUE_REQUEST_CODE + " " + ownPort + " " + ownId + " " + queueId;
+		String request = RequestCodes.POP_QUEUE + " " + ownPort + " " + ownId + " " + queueId;
 		executeRequest(request);
 	}
 	
 	public void queryFromSender(long senderId) {
-		String request = Util.POP_SENDER_QUERY_REQUEST_CODE + " " + ownPort + " " + ownId + " " + senderId;
+		String request = RequestCodes.POP_BY_SENDER + " " + ownPort + " " + ownId + " " + senderId;
 		executeRequest(request);
 	}
 	
 	public void queryForQueuesWithMessages() {
-		String request = Util.QUERY_QUEUES_REQUEST_CODE + " " + ownPort + " " + ownId;
+		String request = RequestCodes.QUERY_FOR_QUEUES + " " + ownPort + " " + ownId;
 		executeRequest(request);
 	}
 

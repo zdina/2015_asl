@@ -1,5 +1,7 @@
 package asl.client;
 
+import asl.ErrorCodes;
+import asl.ResponseCodes;
 import asl.Util;
 
 public class ResponseHandler {
@@ -15,39 +17,39 @@ public class ResponseHandler {
 		int responseCode = Integer.parseInt(responseParts[0]);
 		
 		switch (responseCode) {
-		case Util.REGISTER_RESPONSE_CODE:
+		case ResponseCodes.REGISTER_RESPONSE_CODE:
 			handleRegisterResponse(responseParts);
 			break;
-		case Util.SEND_RESPONSE_CODE:
+		case ResponseCodes.SEND_RESPONSE_CODE:
 			break;
-		case Util.CREATE_QUEUE_RESPONSE_CODE:
+		case ResponseCodes.CREATE_QUEUE_RESPONSE_CODE:
 			handleCreateQueueResponse(responseParts);
 			break;
-		case Util.REMOVE_QUEUE_RESPONSE_CODE:
+		case ResponseCodes.REMOVE_QUEUE_RESPONSE_CODE:
 			handleRemoveQueueResponse(responseParts);
 			break;
-		case Util.QUERY_QUEUES_RESPONSE_CODE:
+		case ResponseCodes.QUERY_QUEUES_RESPONSE_CODE:
 			handleQueues(responseParts);
 			break;
-		case Util.PEEK_QUEUE_RESPONSE_CODE:
+		case ResponseCodes.PEEK_QUEUE_RESPONSE_CODE:
 			handlePeekQueue(responseParts);
 			break;
-		case Util.WRONG_QUEUE_ID_ERROR:
+		case ErrorCodes.WRONG_QUEUE_ID:
 			handleRemoveQueueResponse(responseParts);
 			break;
-		case Util.WRONG_SENDER_ID_ERROR:
+		case ErrorCodes.WRONG_CLIENT_ID:
 			handleWrongSenderIdError();
 			break;
-		case Util.WRONG_RECEIVER_ID_ERROR:
-			handleWrongReceiverId(responseParts);
-			break;
-		case Util.POP_SENDER_QUERY_RESPONSE_CODE:
+//		case ErrorCodes.WRONG_RECEIVER_ID_ERROR:
+//			handleWrongReceiverId(responseParts);
+//			break;
+		case ResponseCodes.POP_SENDER_QUERY_RESPONSE_CODE:
 			handleQueryBySender(responseParts);
 			break;
-		case Util.QUEUE_IN_USE:
+		case ErrorCodes.QUEUE_CONTAINS_MESSAGES:
 			handleQueueInUse(responseParts);
 			break;
-		case Util.SQL_ERROR:
+		case ErrorCodes.SQL_ERROR:
 			handleSQLError();
 			break;
 		default:
@@ -56,7 +58,7 @@ public class ResponseHandler {
 			break;
 		}
 		
-		if (responseCode != Util.WRONG_SENDER_ID_ERROR)
+		if (responseCode != ErrorCodes.WRONG_CLIENT_ID)
 			c.nextRequest();
 	}
 	
