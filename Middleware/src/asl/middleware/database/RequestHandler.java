@@ -10,16 +10,16 @@ import asl.ErrorCodes;
 import asl.RequestCodes;
 import asl.ResponseCodes;
 import asl.Util;
-import asl.middleware.ClientProxy;
+import asl.middleware.RequestWrapper;
 
 public class RequestHandler {
 
 	private String[] requestParts;
 	private Connection con;
-	private ClientProxy cp;
+	private RequestWrapper cp;
 	private String response;
 
-	public RequestHandler(ClientProxy cp, Connection con) {
+	public RequestHandler(RequestWrapper cp, Connection con) {
 		this.cp = cp;
 		this.con = con;
 		requestParts = cp.getRequest().split(" ");
@@ -65,42 +65,39 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Register Request: code _ port Checks first, whether client exists already
+	 * Register Request: code 
+	 * Checks first, whether client exists already
 	 * (based on IP and port) If exists, returns the id found Else, inserts new
 	 * entry and returns this entry's id
 	 */
 	private void register() throws SQLException {
-		String ip = cp.getAddress().getHostName();
-		int port = Integer.parseInt(requestParts[1]);
+//		long id;
+//		String query = "SELECT id FROM " + Util.CLIENT_TABLE + " WHERE ip = '"
+//				+ ip + "' AND port = " + port;
+//		PreparedStatement stmt = con.prepareStatement(query);
+//		ResultSet oldId = stmt.executeQuery();
+//		if (oldId.next()) {
+//			id = oldId.getLong(1);
+//		} else {
+//
+//			String insert = "INSERT INTO " + Util.CLIENT_TABLE
+//					+ "(ip, port) VALUES('" + ip + "',?)";
+//			PreparedStatement stmt2 = con.prepareStatement(insert,
+//					Statement.RETURN_GENERATED_KEYS);
+//			stmt2.setInt(1, port);
+//			stmt2.executeUpdate();
+//			ResultSet generatedId = stmt2.getGeneratedKeys();
+//			generatedId.next();
+//			id = generatedId.getLong(1);
+//			System.out.println("Inserted id for '" + cp.getRequest() + "': "
+//					+ id);
+//		}
 
-		long id;
-
-		String query = "SELECT id FROM " + Util.CLIENT_TABLE + " WHERE ip = '"
-				+ ip + "' AND port = " + port;
-		PreparedStatement stmt = con.prepareStatement(query);
-		ResultSet oldId = stmt.executeQuery();
-		if (oldId.next()) {
-			id = oldId.getLong(1);
-		} else {
-
-			String insert = "INSERT INTO " + Util.CLIENT_TABLE
-					+ "(ip, port) VALUES('" + ip + "',?)";
-			PreparedStatement stmt2 = con.prepareStatement(insert,
-					Statement.RETURN_GENERATED_KEYS);
-			stmt2.setInt(1, port);
-			stmt2.executeUpdate();
-			ResultSet generatedId = stmt2.getGeneratedKeys();
-			generatedId.next();
-			id = generatedId.getLong(1);
-			System.out.println("Inserted id for '" + cp.getRequest() + "': "
-					+ id);
-		}
-
-		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + id;
+		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + cp.getClientId();
 	}
 
 	/*
-	 * Create Queue Request: code _ port
+	 * Create Queue Request: code
 	 */
 	private void createQueue() throws SQLException {
 		String query = "SELECT createQueue()";
@@ -112,11 +109,11 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Remove Queue Request: code _ port _ id. Can't delete queue, if there are
+	 * Remove Queue Request: code _ id. Can't delete queue, if there are
 	 * still messages.
 	 */
 	private void removeQueue() throws SQLException {
-		long queueId = Long.parseLong(requestParts[2]);
+		long queueId = Long.parseLong(requestParts[1]);
 		String query = "SELECT removeQueue(?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, queueId);
@@ -136,10 +133,10 @@ public class RequestHandler {
 	 * content
 	 */
 	private void send() throws SQLException {
-		long senderId = Long.parseLong(requestParts[2]);
-		long receiverId = Long.parseLong(requestParts[3]);
-		long queueId = Long.parseLong(requestParts[4]);
-		String content = requestParts[5];
+		long senderId = Long.parseLong(requestParts[1]);
+		long receiverId = Long.parseLong(requestParts[2]);
+		long queueId = Long.parseLong(requestParts[3]);
+		String content = requestParts[4];
 
 		String insert = "SELECT sendMessage(?, ?, ?, ?)";
 		PreparedStatement stmt = con.prepareStatement(insert);
@@ -162,11 +159,11 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Peek (or pop if param true) Queue: code _ port _ receiverid _ queueid
+	 * Peek (or pop if param true) Queue: code _ receiverid _ queueid
 	 */
 	public void queryByQueue(boolean doDelete) throws SQLException {
-		long receiverid = Long.parseLong(requestParts[2]);
-		long queueid = Long.parseLong(requestParts[3]);
+		long receiverid = Long.parseLong(requestParts[1]);
+		long queueid = Long.parseLong(requestParts[2]);
 		String query = "SELECT queryByQueue(?,?,?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, receiverid);
@@ -190,10 +187,10 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Query for queues with messages: code _ port _ receiverid
+	 * Query for queues with messages: code _ receiverid
 	 */
 	public void queryForQueuesWithMessages() throws SQLException {
-		long receiverid = Long.parseLong(requestParts[2]);
+		long receiverid = Long.parseLong(requestParts[1]);
 		String query = "SELECT queryForQueues(?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, receiverid);
@@ -204,12 +201,12 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Pops/peeks message by specific sender: code _ port _ receiverid _
+	 * Pops/peeks message by specific sender: code _ receiverid _
 	 * senderid
 	 */
 	public void queryBySender(boolean doDelete) throws SQLException {
-		long receiverid = Long.parseLong(requestParts[2]);
-		long senderid = Long.parseLong(requestParts[3]);
+		long receiverid = Long.parseLong(requestParts[1]);
+		long senderid = Long.parseLong(requestParts[2]);
 		String query = "SELECT queryBySender(?,?,?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, receiverid);

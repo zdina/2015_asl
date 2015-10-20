@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public abstract class Processor implements Runnable {
 	
-	public static final int MAX_THREAD_POOL_SIZE = 100;
+	public static final int MAX_THREAD_POOL_SIZE = 10;
 
 	protected Server middleware;
 	protected boolean running;

@@ -1,5 +1,9 @@
 package asl.client;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,26 +12,26 @@ public class Client implements Runnable {
 	private ArrayList<Long> queues;
 
 	private RequestSender rs;
+	private ResponseHandler rh;
+	private Socket socket;
 
 	private int numClients;
-
-	// private BufferedReader in;
-
 	private int messageLength;
 
 	// "Dinas-MacBook-Air.local"
 	// 4321
-	public Client(String middlewareIp, int middlewarePort, int ownPort,
-			int messageLength, int numClients) throws Exception {
-		queues = new ArrayList<Long>();
-		rs = new RequestSender(middlewareIp, middlewarePort, ownPort);
-		// in = new BufferedReader(new
-		// InputStreamReader(socket.getInputStream()));
+	public Client(String middlewareIp, int middlewarePort, int messageLength,
+			int numClients) throws Exception {
 		this.messageLength = messageLength;
 		this.numClients = numClients;
+		queues = new ArrayList<Long>();
 
-		ResponseAcceptor ra = new ResponseAcceptor(ownPort,
-				new ResponseHandler(this));
+		this.socket = new Socket(middlewareIp, middlewarePort);
+		rs = new RequestSender(middlewareIp, middlewarePort, socket);
+		rh = new ResponseHandler(this);
+		
+
+		ResponseAcceptor ra = new ResponseAcceptor(socket, rh);
 		Thread t = new Thread(ra);
 		t.start();
 		System.out.println("Client " + this.toString() + " started.");
@@ -36,9 +40,6 @@ public class Client implements Runnable {
 	public void run() {
 		try {
 			rs.register();
-
-			// rs.createQueue();
-			// rs.removeQueue(queues.get(0));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -62,28 +63,34 @@ public class Client implements Runnable {
 		rs.register();
 	}
 
-	public void nextRequest() {
+	public void nextRequest() throws IOException {
 		// here should be a random request chosen to be generated
 		// Thread.sleep(2000);
 		// makes the requests sequential and the server ALWAYS has to reply!
 		// could send message to himself!
-		
+
 		if (queues.isEmpty())
 			rs.createQueue(); // or check for queues that hold messages!
-//		else if (Math.random() < 0.7)
-//			rs.queryFromSender(1);
-//		else if (Math.random() < 0.7) {
-//			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-//			rs.removeQueue(randomQueue);
-//		}
-		else if (Math.random() < 0.7) {
-			long randomQueue = queues.get((int) (Math.random() * queues.size()));
-			int receiverId = (int) (Math.random() * numClients + 1); // assuming that the Ids start with 1!!
+		else if (Math.random() < 0.2)
+			rs.queryFromSender(1);
+		else if (Math.random() < 0.4) {
+			long randomQueue = queues
+					.get((int) (Math.random() * queues.size()));
+			rs.removeQueue(randomQueue);
+		} else if (Math.random() < 0.7) {
+			long randomQueue = queues
+					.get((int) (Math.random() * queues.size()));
+			int receiverId = (int) (Math.random() * numClients + 1); // assuming
+																		// that
+																		// the
+																		// Ids
+																		// start
+																		// with
+																		// 1!!
 			rs.sendMessage(receiverId, generateContent(), randomQueue);
-		}
-		else {
+		} else {
 			rs.createQueue();
-//			rs.queryForQueuesWithMessages();
+			// rs.queryForQueuesWithMessages();
 		}
 	}
 
@@ -97,24 +104,9 @@ public class Client implements Runnable {
 	}
 
 	public static void main(String[] args) throws Exception {
-//		new Thread(new Client("10.0.1.70", 4321, 1234, 200, 3)).start();
-		new Thread(new Client("10.0.1.70", 4321, 2345, 200, 3)).start();
-//		new Thread(new Client("10.0.1.70", 4321, 3456, 200, 3)).start();
+		new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
+		// new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
+		// new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
 	}
-
-	// public void sendMessage(int receiverId) {
-	// Message message = new Message(id, receiverId, messageLength);
-	// out.println(message.getSendRequest());
-	// }
-
-	// public String receiveMessage() {
-	// String line = "";
-	// try {
-	// line = in.readLine();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// return line;
-	// }
 
 }

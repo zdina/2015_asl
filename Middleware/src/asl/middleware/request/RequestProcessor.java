@@ -1,33 +1,52 @@
 package asl.middleware.request;
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.InputStream;
+import java.net.Socket;
+import java.util.Map;
 
 import asl.middleware.Processor;
+import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 
-public class RequestProcessor extends Processor {
+public class RequestProcessor implements Runnable {
+	
+	private Server middleware;
+	private Map<Long, Socket> clients;
 
-	private ServerSocket server;
-
-	public RequestProcessor(int port, Server middleware) throws Exception {
-		super(middleware);
-		server = new ServerSocket(port);
-		System.out.println("RequestProcessor started.");
+	public RequestProcessor(Server middleware) throws Exception {
+		this.middleware = middleware;
+		this.clients = middleware.getClients();
 	}
 
 	public void run() {
-
-		while (running) {
-			RequestWorker cw;
-			try {
-				cw = new RequestWorker(server.accept(), middleware);
-				executor.execute(cw);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		while (true) {
+			for (long clientId : clients.keySet()) {
+				Socket client = clients.get(clientId);
+				try {
+					InputStream is = client.getInputStream();
+					int availableBytes = is.available();
+					if (availableBytes > 0) {
+						boolean lastByteFound = false;
+						StringBuffer sb = new StringBuffer();
+						while (!lastByteFound) {
+							byte[] requestBytes = new byte[availableBytes];
+							is.read(requestBytes);
+							if (requestBytes[availableBytes - 1] == 0)
+								lastByteFound = true;
+							else
+								availableBytes = is.available();
+							sb.append(new String(requestBytes));
+						}
+						String request = sb.toString();
+						System.out.println("Request received: " + request);
+						middleware.addToRequestQueue(new RequestWrapper(clientId, request));
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
-
 	}
 
 }

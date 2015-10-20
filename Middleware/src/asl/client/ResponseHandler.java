@@ -1,5 +1,7 @@
 package asl.client;
 
+import java.io.IOException;
+
 import asl.ErrorCodes;
 import asl.ResponseCodes;
 import asl.Util;
@@ -12,7 +14,7 @@ public class ResponseHandler {
 		this.c = c;
 	}
 	
-	public void processResponse(String response) {
+	public void processResponse(String response) throws IOException {
 		String[] responseParts = response.split(" ");
 		int responseCode = Integer.parseInt(responseParts[0]);
 		

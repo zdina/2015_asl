@@ -3,26 +3,26 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import asl.middleware.ClientProxy;
+import asl.middleware.RequestWrapper;
 
 public class ResponseWorker implements Runnable {
 
-	private ClientProxy cp;
+	private RequestWrapper cp;
 
-	public ResponseWorker(ClientProxy cp) {
+	public ResponseWorker(RequestWrapper cp) {
 		this.cp = cp;
 	}
 
 	public void run() {
-		try {
-			Socket client = new Socket(cp.getAddress(), cp.getPort());
-			PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-			out.println(cp.getResponse());
-			client.close();
-		} catch (IOException e) {
-			System.out.println("Response worker failed: " + cp.getRequest());
-			e.printStackTrace();
-		}
+//		try {
+//			Socket client = new Socket(cp.getAddress(), cp.getPort());
+//			PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+//			out.println(cp.getResponse());
+//			client.close();
+//		} catch (IOException e) {
+//			System.out.println("Response worker failed: " + cp.getRequest());
+//			e.printStackTrace();
+//		}
 	}
 
 }

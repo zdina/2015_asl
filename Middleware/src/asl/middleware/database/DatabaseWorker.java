@@ -5,18 +5,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import asl.middleware.ClientProxy;
+import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 
 public class DatabaseWorker implements Runnable {
 
 	private DatabaseProcessor dp;
 	private Connection con;
-	private ClientProxy cr;
+	private RequestWrapper cr;
 	private Server middleware;
 
 	public DatabaseWorker(DatabaseProcessor dp, Server middleware,
-			ClientProxy cr) {
+			RequestWrapper cr) {
 		this.dp = dp;
 		this.cr = cr;
 		this.middleware = middleware;

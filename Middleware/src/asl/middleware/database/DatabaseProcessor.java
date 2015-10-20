@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import asl.middleware.ClientProxy;
+import asl.middleware.RequestWrapper;
 import asl.middleware.Processor;
 import asl.middleware.Server;
 
@@ -29,7 +29,7 @@ public class DatabaseProcessor extends Processor {
 
 	public void run() {
 		while (running) {
-			ClientProxy cr = middleware.removeFromRequestQueue();
+			RequestWrapper cr = middleware.removeFromRequestQueue();
 			if (cr != null) {
 				DatabaseWorker dw = new DatabaseWorker(this, middleware, cr);
 				executor.execute(dw);

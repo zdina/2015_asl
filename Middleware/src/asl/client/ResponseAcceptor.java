@@ -3,17 +3,16 @@ package asl.client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ResponseAcceptor implements Runnable {
 
-	private ServerSocket acceptor;
 	private ResponseHandler rh;
+	private BufferedReader in;
 
-	public ResponseAcceptor(int port, ResponseHandler rh) throws IOException {
-		acceptor = new ServerSocket(port);
+	public ResponseAcceptor(Socket socket, ResponseHandler rh)
+			throws IOException {
+		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		this.rh = rh;
 	}
 
@@ -21,15 +20,9 @@ public class ResponseAcceptor implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				Socket middleware = acceptor.accept();
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						middleware.getInputStream()));
-				String line = in.readLine();
-				middleware.close();
-				if (line != null) {
-					System.out.println("Response received: " + line);
-					rh.processResponse(line);
-				}
+				String response = in.readLine();
+				System.out.println("Response received: " + response);
+				rh.processResponse(response);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
