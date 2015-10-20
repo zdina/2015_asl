@@ -4,16 +4,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 
 public abstract class Processor implements Runnable {
-	
-	public static final int MAX_THREAD_POOL_SIZE = 10;
 
 	protected Server middleware;
 	protected boolean running;
 	protected ThreadPoolExecutor executor;
 	
-	public Processor(Server middleware) {
+	public Processor(Server middleware, int numThreads) {
 		executor = (ThreadPoolExecutor) Executors
-				.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
+				.newFixedThreadPool(numThreads);
 		this.middleware = middleware;
 		running = true;
 	}

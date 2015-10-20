@@ -3,7 +3,7 @@
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
-        <jar destfile="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/client.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Middleware/asl.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="asl.client.Client"/>
                 <attribute name="Class-Path" value="."/>
@@ -11,7 +11,7 @@
             <fileset dir="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Middleware/bin"/>
             <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Middleware/lib/log4j-api-2.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Middleware/lib/log4j-core-2.3.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Middleware/lib/postgresql-9.4-1203.jdbc42.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="/Users/dinazverinski/ETH/AdvancedSystemLab/2015_asl/Middleware/lib/postgresql-9.4-1204.jdbc41.jar"/>
         </jar>
     </target>
 </project>

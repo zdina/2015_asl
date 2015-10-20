@@ -11,17 +11,22 @@ import asl.middleware.Server;
 
 public class DatabaseProcessor extends Processor {
 
-	public static final int MAX_CONNECTION_POOL_SIZE = 30;
 	public static final String DRIVER_NAME = "org.postgresql.Driver";
 
-	private static String databaseUrl = "jdbc:postgresql://localhost:5432/asldb";
-	private static String userName = "dinazverinski";
-	private static String password = "";
+	private String databaseUrl;
+	private String userName;
+	private String password = "";
+	
+	public int numConnections = 30;
 
 	private Vector<Connection> connectionPool;
 
-	public DatabaseProcessor(Server middleware) throws Exception {
-		super(middleware);
+	public DatabaseProcessor(Server middleware, String database, String user, int numConnections, int numThreads) throws Exception {
+		super(middleware, numThreads);
+		this.databaseUrl = "jdbc:postgresql://" + database;
+		this.userName = user;
+		this.numConnections = numConnections;
+		
 		connectionPool = new Vector<Connection>();
 		initializeConnectionPool();
 		System.out.println("DatabaseProcessor started.");
@@ -42,7 +47,7 @@ public class DatabaseProcessor extends Processor {
 	// }
 
 	private void initializeConnectionPool() {
-		while (connectionPool.size() < MAX_CONNECTION_POOL_SIZE)
+		while (connectionPool.size() < numConnections)
 			connectionPool.addElement(createNewConnectionForPool());
 
 	}
@@ -56,6 +61,7 @@ public class DatabaseProcessor extends Processor {
 					password);
 		} catch (SQLException sqle) {
 			System.err.println("SQLException: " + sqle);
+			sqle.printStackTrace();
 			return null;
 		} catch (ClassNotFoundException cnfe) {
 			System.err.println("ClassNotFoundException: " + cnfe);

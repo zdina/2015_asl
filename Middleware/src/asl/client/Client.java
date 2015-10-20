@@ -1,10 +1,11 @@
 package asl.client;
 
-import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.Random;
 
 public class Client implements Runnable {
@@ -24,12 +25,12 @@ public class Client implements Runnable {
 			int numClients) throws Exception {
 		this.messageLength = messageLength;
 		this.numClients = numClients;
+		
 		queues = new ArrayList<Long>();
 
 		this.socket = new Socket(middlewareIp, middlewarePort);
 		rs = new RequestSender(middlewareIp, middlewarePort, socket);
 		rh = new ResponseHandler(this);
-		
 
 		ResponseAcceptor ra = new ResponseAcceptor(socket, rh);
 		Thread t = new Thread(ra);
@@ -64,10 +65,7 @@ public class Client implements Runnable {
 	}
 
 	public void nextRequest() throws IOException {
-		// here should be a random request chosen to be generated
 		// Thread.sleep(2000);
-		// makes the requests sequential and the server ALWAYS has to reply!
-		// could send message to himself!
 
 		if (queues.isEmpty())
 			rs.createQueue(); // or check for queues that hold messages!
@@ -104,7 +102,19 @@ public class Client implements Runnable {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
+		Properties prop = new Properties();
+		InputStream input = new FileInputStream("config.properties");
+		prop.load(input);
+		String serverhost = prop.getProperty("serverhost");
+		int serverport = Integer.parseInt(prop.getProperty("serverport"));
+		int messageLength = Integer.parseInt(prop.getProperty("messageLength"));
+		int numClients = Integer.parseInt(prop.getProperty("numClients"));
+		input.close();
+		
+		// "dryad02.ethz.ch" //12341
+		new Thread(
+				new Client(serverhost, serverport, messageLength, numClients))
+				.start();
 		// new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
 		// new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
 	}
