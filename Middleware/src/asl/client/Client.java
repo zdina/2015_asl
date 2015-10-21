@@ -8,9 +8,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import asl.Util;
 
 public class Client implements Runnable {
@@ -19,6 +16,7 @@ public class Client implements Runnable {
 
 	private RequestSender rs;
 	private ResponseHandler rh;
+	private ResponseAcceptor ra;
 	private Socket socket;
 
 	private int numClients;
@@ -35,7 +33,7 @@ public class Client implements Runnable {
 		rs = new RequestSender(middlewareIp, middlewarePort, socket);
 		rh = new ResponseHandler(this);
 
-		ResponseAcceptor ra = new ResponseAcceptor(rs, socket, rh);
+		ra = new ResponseAcceptor(rs, socket, rh);
 		Thread t = new Thread(ra);
 		t.start();
 		System.out.println("Client " + this.toString() + " started.");
@@ -43,6 +41,10 @@ public class Client implements Runnable {
 
 	public void run() {
 		rs.register();
+	}
+
+	public void terminate() {
+		ra.terminate();
 	}
 
 	public void addQueueId(long id) {
@@ -105,11 +107,22 @@ public class Client implements Runnable {
 					.getProperty("messageLength"));
 			int numClients = Integer.parseInt(prop.getProperty("numClients"));
 			input.close();
+			int experimentTime = Integer.parseInt(prop.getProperty("experimentTime"));
 
+			ArrayList<Client> clientThreads = new ArrayList<Client>();
 			for (int i = 0; i < numClients; i++) {
-				new Thread(new Client(serverhost, serverport, messageLength,
-						numClients)).start();
+				Client c = new Client(serverhost, serverport, messageLength,
+						numClients);
+				Thread t = new Thread(c);
+				t.start();
+				clientThreads.add(c);
 			}
+			
+			Thread.sleep(experimentTime * 60000);
+			for (int i = 0; i < numClients; i++) {
+				clientThreads.get(i).terminate();
+			}
+
 		} catch (Exception e) {
 			Util.clientErrorLogger.catching(e);
 		}

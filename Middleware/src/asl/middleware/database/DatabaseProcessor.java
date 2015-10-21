@@ -31,7 +31,7 @@ public class DatabaseProcessor extends Processor {
 
 		connectionPool = new Vector<Connection>();
 		initializeConnectionPool();
-//		emptyDb();
+		emptyDb();
 		System.out.println("DatabaseProcessor started.");
 	}
 	

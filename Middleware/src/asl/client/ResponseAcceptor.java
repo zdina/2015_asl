@@ -1,11 +1,8 @@
 package asl.client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.Socket;
-
-import org.apache.logging.log4j.message.ObjectMessage;
 
 import asl.Util;
 
@@ -13,31 +10,50 @@ public class ResponseAcceptor implements Runnable {
 
 	private ResponseHandler rh;
 	private RequestSender rs;
-	
-	private BufferedReader in;
-	
+	private InputStream in;
+	private boolean running;
 
 	public ResponseAcceptor(RequestSender rs, Socket socket, ResponseHandler rh)
 			throws IOException {
-		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		in = socket.getInputStream();
 		this.rh = rh;
 		this.rs = rs;
+		running = true;
 	}
 
 	@Override
 	public void run() {
-		while (true) {
+		while (running) {
 			try {
-				String response = in.readLine();
-				long timePassed = System.nanoTime() - rs.getNanoTime();
-				Util.clientLogger.info("{},{},{},{}", rs.getId(), rs.getRequestcode(), response.split(" ")[0], timePassed);
-				System.out.println("Response received: " + response);
-				rh.processResponse(response);
+				int availableBytes = in.available();
+				if (availableBytes > 0) {
+					boolean lastByteFound = false;
+					StringBuffer sb = new StringBuffer();
+					while (!lastByteFound) {
+						byte[] requestBytes = new byte[availableBytes];
+						in.read(requestBytes);
+						if (requestBytes[availableBytes - 1] == 0)
+							lastByteFound = true;
+						else
+							availableBytes = in.available();
+						sb.append(new String(requestBytes));
+					}
+					String response = sb.toString();
+					long timePassed = System.nanoTime() - rs.getNanoTime();
+					Util.clientLogger.info("{},{},{},{},{}", System.nanoTime(),
+							rs.getId(), rs.getRequestcode(),
+							response.split(" ")[0], timePassed);
+					System.out.println("Response received: " + response);
+					rh.processResponse(response);
+				}
 			} catch (Exception e) {
 				Util.clientErrorLogger.catching(e);
 			}
 		}
+	}
 
+	public void terminate() {
+		running = false;
 	}
 
 }

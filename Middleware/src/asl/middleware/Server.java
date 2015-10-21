@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import asl.middleware.database.DatabaseProcessor;
-import asl.middleware.database.DatabaseWorker;
 import asl.middleware.request.RequestProcessor;
 import asl.middleware.response.ResponseProcessor;
 
 public class Server {
 
-	private static Queue<RequestWrapper> requestQueue;
-	private static Queue<RequestWrapper> responseQueue;
+	private static ConcurrentLinkedQueue<RequestWrapper> requestQueue;
+	private static ConcurrentLinkedQueue<RequestWrapper> responseQueue;
 	private static Map<Long, Socket> clients;
 	private long idCount;
 
@@ -26,8 +26,8 @@ public class Server {
 
 	public Server(int port, String database, String user, int numConnections,
 			int numThreads) throws Exception {
-		requestQueue = new LinkedList<RequestWrapper>();
-		responseQueue = new LinkedList<RequestWrapper>();
+		requestQueue = new ConcurrentLinkedQueue<RequestWrapper>();
+		responseQueue = new ConcurrentLinkedQueue<RequestWrapper>();
 		clients = new ConcurrentHashMap<Long, Socket>();
 		server = new ServerSocket(port);
 		idCount = 1;
@@ -59,19 +59,19 @@ public class Server {
 		t.start();
 	}
 
-	public synchronized void addToRequestQueue(RequestWrapper cr) {
+	public void addToRequestQueue(RequestWrapper cr) {
 		requestQueue.add(cr);
 	}
 
-	public synchronized RequestWrapper removeFromRequestQueue() {
+	public RequestWrapper removeFromRequestQueue() {
 		return requestQueue.poll();
 	}
 
-	public synchronized void addToResponseQueue(RequestWrapper cr) {
+	public void addToResponseQueue(RequestWrapper cr) {
 		responseQueue.add(cr);
 	}
 
-	public synchronized RequestWrapper removeFromResponseQueue() {
+	public RequestWrapper removeFromResponseQueue() {
 		return responseQueue.poll();
 	}
 
