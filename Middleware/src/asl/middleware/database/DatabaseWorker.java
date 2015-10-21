@@ -30,6 +30,7 @@ public class DatabaseWorker implements Runnable {
 		RequestHandler rt = new RequestHandler(cr, con);
 		String response = rt.getResponse();
 		if (response != null) {
+			response = response.replace("\n", " ");
 			cr.setResponse(response);
 			middleware.addToResponseQueue(cr);
 		}

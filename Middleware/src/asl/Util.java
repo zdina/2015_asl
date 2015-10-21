@@ -19,7 +19,10 @@ public class Util {
 //	public static final int QUERY_QUEUES_REQUEST_CODE = 9;
 
 
-	public static final Logger logger = LogManager.getLogger("asl.log.client");
+	public static final Logger clientLogger = LogManager.getLogger("asl.log.client");
+	public static final Logger serverLogger = LogManager.getLogger("asl.log.server");
+	public static final Logger clientErrorLogger = LogManager.getLogger("asl.log.error.client");
+	public static final Logger serverErrorLogger = LogManager.getLogger("asl.log.error.server");
 	
 	public static final int NO_RECEIVER_CODE = 0; //needs a no receiver id in db!!
 	

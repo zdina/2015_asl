@@ -1,0 +1,12 @@
+DROP FUNCTION IF EXISTS emptyDb();
+CREATE or REPLACE FUNCTION emptyDb() RETURNS void AS
+$$
+BEGIN
+
+DELETE FROM message;
+DELETE FROM queue;
+DELETE FROM client;
+
+END;
+$$
+LANGUAGE 'plpgsql';

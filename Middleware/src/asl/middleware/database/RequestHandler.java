@@ -24,7 +24,7 @@ public class RequestHandler {
 		this.con = con;
 		requestParts = cp.getRequest().split(" ");
 		int requestCode = Integer.parseInt(requestParts[0]);
-
+		cp.setTimeDbStart(System.nanoTime());
 		try {
 			switch (requestCode) {
 			case RequestCodes.REGISTER:
@@ -58,6 +58,7 @@ public class RequestHandler {
 		} catch (SQLException e) {
 			response = ErrorCodes.SQL_ERROR + " " + e.getMessage();
 		}
+		cp.setTimeDbReceived(System.nanoTime());
 	}
 
 	public String getResponse() {
@@ -68,7 +69,7 @@ public class RequestHandler {
 	/*
 	 * Register Request: code 
 	 */
-	private long register() throws SQLException {
+	private void register() throws SQLException {
 		String query = "SELECT registerClient(?)";
 		PreparedStatement stmt = con.prepareStatement(query);
 		stmt.setLong(1, cp.getClientId());
@@ -76,7 +77,6 @@ public class RequestHandler {
 		rs.next();
 		String dbresponse = rs.getString(1);
 		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + dbresponse;
-		return Long.parseLong(dbresponse);
 	}
 
 	/*

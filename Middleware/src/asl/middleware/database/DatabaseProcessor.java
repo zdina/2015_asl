@@ -2,6 +2,7 @@ package asl.middleware.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Vector;
 
@@ -30,7 +31,15 @@ public class DatabaseProcessor extends Processor {
 
 		connectionPool = new Vector<Connection>();
 		initializeConnectionPool();
+//		emptyDb();
 		System.out.println("DatabaseProcessor started.");
+	}
+	
+	private void emptyDb() throws SQLException {
+		Connection con = getConnectionFromPool();
+		PreparedStatement stmt = con.prepareStatement("select emptydb()");
+		stmt.executeQuery();
+		returnConnectionToPool(con);
 	}
 
 	public void run() {

@@ -11,6 +11,8 @@ import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import asl.Util;
+
 public class Client implements Runnable {
 
 	private ArrayList<Long> queues;
@@ -24,7 +26,7 @@ public class Client implements Runnable {
 
 	public Client(String middlewareIp, int middlewarePort, int messageLength,
 			int numClients) throws Exception {
-		
+
 		this.messageLength = messageLength;
 		this.numClients = numClients;
 		queues = new ArrayList<Long>();
@@ -77,10 +79,10 @@ public class Client implements Runnable {
 			// assuming that ids start with 1
 			int receiverId = (int) (Math.random() * numClients + 1);
 			rs.sendMessage(receiverId, generateContent(), randomQueue);
-		} else {
+		} else if (Math.random() < 0.5) {
 			rs.createQueue();
-			// rs.queryForQueuesWithMessages();
-		}
+		} else
+			rs.queryForQueuesWithMessages();
 	}
 
 	private String generateContent() {
@@ -92,19 +94,24 @@ public class Client implements Runnable {
 		return sb.toString();
 	}
 
-	public static void main(String[] args) throws Exception {
-		Properties prop = new Properties();
-		InputStream input = new FileInputStream("config.properties");
-		prop.load(input);
-		String serverhost = prop.getProperty("serverhost");
-		int serverport = Integer.parseInt(prop.getProperty("serverport"));
-		int messageLength = Integer.parseInt(prop.getProperty("messageLength"));
-		int numClients = Integer.parseInt(prop.getProperty("numClients"));
-		input.close();
+	public static void main(String[] args) {
+		try {
+			Properties prop = new Properties();
+			InputStream input = new FileInputStream("config.properties");
+			prop.load(input);
+			String serverhost = prop.getProperty("serverhost");
+			int serverport = Integer.parseInt(prop.getProperty("serverport"));
+			int messageLength = Integer.parseInt(prop
+					.getProperty("messageLength"));
+			int numClients = Integer.parseInt(prop.getProperty("numClients"));
+			input.close();
 
-		for (int i = 0; i < numClients; i++) {
-			new Thread(new Client(serverhost, serverport, messageLength,
-					numClients)).start();
+			for (int i = 0; i < numClients; i++) {
+				new Thread(new Client(serverhost, serverport, messageLength,
+						numClients)).start();
+			}
+		} catch (Exception e) {
+			Util.clientErrorLogger.catching(e);
 		}
 	}
 

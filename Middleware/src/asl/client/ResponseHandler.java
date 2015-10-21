@@ -1,7 +1,5 @@
 package asl.client;
 
-import java.io.IOException;
-
 import asl.ErrorCodes;
 import asl.ResponseCodes;
 import asl.Util;
@@ -14,7 +12,7 @@ public class ResponseHandler {
 		this.c = c;
 	}
 	
-	public void processResponse(String response) throws IOException {
+	public void processResponse(String response) throws Exception {
 		String[] responseParts = response.split(" ");
 		int responseCode = Integer.parseInt(responseParts[0]);
 		
@@ -52,7 +50,7 @@ public class ResponseHandler {
 			handleQueueInUse(responseParts);
 			break;
 		case ErrorCodes.SQL_ERROR:
-			handleSQLError();
+			handleSQLError(response);
 			break;
 		default:
 			System.out.println("Unknown response code: " + responseCode);
@@ -112,9 +110,8 @@ public class ResponseHandler {
 		// do something with wrong receiver id
 	}
 
-	private void handleSQLError() {
-		// TODO Auto-generated method stub
-		
+	private void handleSQLError(String response) {
+		Util.clientErrorLogger.error(response);
 	}
 
 	private void handleUnknownResponseCode() {

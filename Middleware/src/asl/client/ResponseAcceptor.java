@@ -30,12 +30,11 @@ public class ResponseAcceptor implements Runnable {
 			try {
 				String response = in.readLine();
 				long timePassed = System.nanoTime() - rs.getNanoTime();
-				Util.logger.info("{},{},{},{}", rs.getId(), rs.getRequestcode(), response.split(" ")[0], timePassed);
+				Util.clientLogger.info("{},{},{},{}", rs.getId(), rs.getRequestcode(), response.split(" ")[0], timePassed);
 				System.out.println("Response received: " + response);
 				rh.processResponse(response);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception e) {
+				Util.clientErrorLogger.catching(e);
 			}
 		}
 
