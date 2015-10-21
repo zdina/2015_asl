@@ -5,8 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import asl.middleware.RequestWrapper;
 import asl.middleware.Processor;
+import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 
 public class DatabaseProcessor extends Processor {
@@ -16,17 +16,18 @@ public class DatabaseProcessor extends Processor {
 	private String databaseUrl;
 	private String userName;
 	private String password = "";
-	
-	public int numConnections = 30;
+
+	public int numConnections;
 
 	private Vector<Connection> connectionPool;
 
-	public DatabaseProcessor(Server middleware, String database, String user, int numConnections, int numThreads) throws Exception {
+	public DatabaseProcessor(Server middleware, String database, String user,
+			int numConnections, int numThreads) throws Exception {
 		super(middleware, numThreads);
 		this.databaseUrl = "jdbc:postgresql://" + database;
 		this.userName = user;
 		this.numConnections = numConnections;
-		
+
 		connectionPool = new Vector<Connection>();
 		initializeConnectionPool();
 		System.out.println("DatabaseProcessor started.");
@@ -41,10 +42,6 @@ public class DatabaseProcessor extends Processor {
 			}
 		}
 	}
-
-	// public static void main(String[] args) throws Exception {
-	// new DatabaseProcessor();
-	// }
 
 	private void initializeConnectionPool() {
 		while (connectionPool.size() < numConnections)

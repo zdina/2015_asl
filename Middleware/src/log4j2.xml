@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn"> <!-- debug for everything -->
+    <Properties>
+        <Property name="filename-client">logs/client.log</Property>
+        <Property name="filename-client-error">logs/server1-err.log</Property>
+        <Property name="filename-server-all">logs/server2-all.log</Property>
+        <Property name="filename-server-error">logs/server2-err.log</Property>
+    </Properties>
+ 
+    <Appenders>
+        <!-- the standard-console-appender -->
+        <Console name="appender-Console-all" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+ 
+        <!-- the appenders for server 1 -->
+        <File name="appender-client" fileName="${filename-client}" append="true">
+            <PatternLayout pattern="%msg%n" />
+        </File>
+        <File name="appender-client-error" fileName="log/client-error.log" append="true">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </File>
+ 
+        <!-- the appenders for server 2 -->
+        <File name="appender-server" fileName="log/server.log" append="true">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </File>
+        <File name="appender-server-error" fileName="log/server-error.log" append="true">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </File>
+    </Appenders>
+ 
+ 
+    <Loggers>
+        <!-- Every configuration must have a root logger. If one is not configured the default root LoggerConfig is ERROR with Console appender attached. -->
+        <Root level="ERROR">
+            <AppenderRef ref="appender-Console-all" />
+        </Root>
+ 
+        <!-- server1-loggers -->
+        <!-- additivity means, that parent-logger (in every case the root-logger) will also get the chance to log this stuff -->
+        <Logger name="asl.log.client" additivity="TRUE" level="ALL">
+            <AppenderRef ref="appender-client" level="ALL" />
+            <AppenderRef ref="appender-client-error" level="ERROR" />
+        </Logger>
+ 
+        <!-- server2-loggers -->
+        <!-- additivity means, that parent-logger (in every case the root-logger) will also get the chance to log this stuff -->
+        <Logger name="asl.log.server" additivity="TRUE" level="ALL">
+            <AppenderRef ref="appender-server" level="ALL" />
+            <AppenderRef ref="appender-server-error" level="ERROR" />
+        </Logger>
+    </Loggers>
+</Configuration>

@@ -5,12 +5,21 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import asl.RequestCodes;
+import asl.Util;
 
 public class RequestSender {
 
 	private OutputStream os;
 	private long ownId;
+	
+
+	private long nanoTime;
+	private String requestCode;
+
 
 	public RequestSender(String middlewareIp, int middlewarePort, Socket socket)
 			throws Exception {
@@ -19,6 +28,19 @@ public class RequestSender {
 	
 	public void setId(long id) {
 		this.ownId = id;
+	}
+	
+	public long getId() {
+		return ownId;
+	}
+	
+	
+	public long getNanoTime() {
+		return nanoTime;
+	}
+	
+	public String getRequestcode() {
+		return requestCode;
 	}
 
 	
@@ -32,6 +54,9 @@ public class RequestSender {
 			finishedByteRequest[finishedByteRequest.length - 1] = 0;
 			
 			os.write(finishedByteRequest);
+			nanoTime = System.nanoTime();
+			requestCode = request.split(" ")[0];
+			
 			System.out.println("Request sent: " + request);
 			
 		} catch (IOException e) {

@@ -1,5 +1,10 @@
 package asl;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import asl.client.Client;
+
 public class Util {
 	
 //	public static final int REGISTER_REQUEST_CODE = 0;
@@ -12,6 +17,9 @@ public class Util {
 //	public static final int POP_SENDER_QUERY_REQUEST_CODE = 7;
 //	public static final int PEEK_SENDER_QUERY_REQUEST_CODE = 8;
 //	public static final int QUERY_QUEUES_REQUEST_CODE = 9;
+
+
+	public static final Logger logger = LogManager.getLogger("asl.log.client");
 	
 	public static final int NO_RECEIVER_CODE = 0; //needs a no receiver id in db!!
 	

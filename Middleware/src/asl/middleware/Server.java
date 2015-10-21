@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 
 import asl.middleware.database.DatabaseProcessor;
+import asl.middleware.database.DatabaseWorker;
 import asl.middleware.request.RequestProcessor;
 import asl.middleware.response.ResponseProcessor;
 
@@ -29,7 +30,7 @@ public class Server {
 		responseQueue = new LinkedList<RequestWrapper>();
 		clients = new ConcurrentHashMap<Long, Socket>();
 		server = new ServerSocket(port);
-		idCount = 0;
+		idCount = 1;
 
 		startProcessor(new RequestProcessor(this));
 		startProcessor(new DatabaseProcessor(this, database, user, numConnections, numThreads));

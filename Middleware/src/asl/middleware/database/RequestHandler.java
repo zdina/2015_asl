@@ -63,37 +63,20 @@ public class RequestHandler {
 	public String getResponse() {
 		return response;
 	}
+	
 
 	/*
 	 * Register Request: code 
-	 * Checks first, whether client exists already
-	 * (based on IP and port) If exists, returns the id found Else, inserts new
-	 * entry and returns this entry's id
 	 */
-	private void register() throws SQLException {
-//		long id;
-//		String query = "SELECT id FROM " + Util.CLIENT_TABLE + " WHERE ip = '"
-//				+ ip + "' AND port = " + port;
-//		PreparedStatement stmt = con.prepareStatement(query);
-//		ResultSet oldId = stmt.executeQuery();
-//		if (oldId.next()) {
-//			id = oldId.getLong(1);
-//		} else {
-//
-//			String insert = "INSERT INTO " + Util.CLIENT_TABLE
-//					+ "(ip, port) VALUES('" + ip + "',?)";
-//			PreparedStatement stmt2 = con.prepareStatement(insert,
-//					Statement.RETURN_GENERATED_KEYS);
-//			stmt2.setInt(1, port);
-//			stmt2.executeUpdate();
-//			ResultSet generatedId = stmt2.getGeneratedKeys();
-//			generatedId.next();
-//			id = generatedId.getLong(1);
-//			System.out.println("Inserted id for '" + cp.getRequest() + "': "
-//					+ id);
-//		}
-
-		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + cp.getClientId();
+	private long register() throws SQLException {
+		String query = "SELECT registerClient(?)";
+		PreparedStatement stmt = con.prepareStatement(query);
+		stmt.setLong(1, cp.getClientId());
+		ResultSet rs = stmt.executeQuery();
+		rs.next();
+		String dbresponse = rs.getString(1);
+		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + dbresponse;
+		return Long.parseLong(dbresponse);
 	}
 
 	/*

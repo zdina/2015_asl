@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class Client implements Runnable {
 
 	private ArrayList<Long> queues;
@@ -19,32 +22,25 @@ public class Client implements Runnable {
 	private int numClients;
 	private int messageLength;
 
-	// "Dinas-MacBook-Air.local"
-	// 4321
 	public Client(String middlewareIp, int middlewarePort, int messageLength,
 			int numClients) throws Exception {
+		
 		this.messageLength = messageLength;
 		this.numClients = numClients;
-		
 		queues = new ArrayList<Long>();
 
 		this.socket = new Socket(middlewareIp, middlewarePort);
 		rs = new RequestSender(middlewareIp, middlewarePort, socket);
 		rh = new ResponseHandler(this);
 
-		ResponseAcceptor ra = new ResponseAcceptor(socket, rh);
+		ResponseAcceptor ra = new ResponseAcceptor(rs, socket, rh);
 		Thread t = new Thread(ra);
 		t.start();
 		System.out.println("Client " + this.toString() + " started.");
 	}
 
 	public void run() {
-		try {
-			rs.register();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		rs.register();
 	}
 
 	public void addQueueId(long id) {
@@ -78,13 +74,8 @@ public class Client implements Runnable {
 		} else if (Math.random() < 0.7) {
 			long randomQueue = queues
 					.get((int) (Math.random() * queues.size()));
-			int receiverId = (int) (Math.random() * numClients + 1); // assuming
-																		// that
-																		// the
-																		// Ids
-																		// start
-																		// with
-																		// 1!!
+			// assuming that ids start with 1
+			int receiverId = (int) (Math.random() * numClients + 1);
 			rs.sendMessage(receiverId, generateContent(), randomQueue);
 		} else {
 			rs.createQueue();
@@ -110,13 +101,11 @@ public class Client implements Runnable {
 		int messageLength = Integer.parseInt(prop.getProperty("messageLength"));
 		int numClients = Integer.parseInt(prop.getProperty("numClients"));
 		input.close();
-		
-		// "dryad02.ethz.ch" //12341
-		new Thread(
-				new Client(serverhost, serverport, messageLength, numClients))
-				.start();
-		// new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
-		// new Thread(new Client("10.0.1.70", 4321, 200, 3)).start();
+
+		for (int i = 0; i < numClients; i++) {
+			new Thread(new Client(serverhost, serverport, messageLength,
+					numClients)).start();
+		}
 	}
 
 }

@@ -60,7 +60,7 @@ public class ResponseHandler {
 			break;
 		}
 		
-		if (responseCode != ErrorCodes.WRONG_CLIENT_ID)
+//		if (responseCode != ErrorCodes.WRONG_CLIENT_ID)
 			c.nextRequest();
 	}
 	
@@ -142,7 +142,7 @@ public class ResponseHandler {
 	}
 	
 	private void handleWrongSenderIdError() {
-		c.register();
+//		c.register();
 	}
 
 }

@@ -39,7 +39,7 @@ public class RequestProcessor implements Runnable {
 						}
 						String request = sb.toString();
 						System.out.println("Request received: " + request);
-						middleware.addToRequestQueue(new RequestWrapper(clientId, request));
+						middleware.addToRequestQueue(new RequestWrapper(clientId, request, System.nanoTime()));
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
