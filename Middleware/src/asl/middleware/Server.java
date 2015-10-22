@@ -4,13 +4,12 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import asl.Util;
 import asl.middleware.database.DatabaseProcessor;
 import asl.middleware.request.RequestProcessor;
 import asl.middleware.response.ResponseProcessor;
@@ -21,26 +20,29 @@ public class Server {
 	private static ConcurrentLinkedQueue<RequestWrapper> responseQueue;
 	private static Map<Long, Socket> clients;
 	private long idCount;
+	private int idRangeEnd;
 
 	private ServerSocket server;
 
 	public Server(int port, String database, String user, int numConnections,
-			int numThreads) throws Exception {
+			int numThreads, int idRangeStart, int idRangeEnd) throws Exception {
 		requestQueue = new ConcurrentLinkedQueue<RequestWrapper>();
 		responseQueue = new ConcurrentLinkedQueue<RequestWrapper>();
 		clients = new ConcurrentHashMap<Long, Socket>();
 		server = new ServerSocket(port);
-		idCount = 1;
+		idCount = idRangeStart;
+		this.idRangeEnd = idRangeEnd;
 
 		startProcessor(new RequestProcessor(this));
-		startProcessor(new DatabaseProcessor(this, database, user, numConnections, numThreads));
+		startProcessor(new DatabaseProcessor(this, database, user,
+				numConnections, numThreads));
 		startProcessor(new ResponseProcessor(this));
 		System.out.println("Server started.");
 		registerClients();
 	}
 
 	public void registerClients() throws Exception {
-		while (true) {
+		while (idCount <= idRangeEnd) {
 			clients.put(idCount, server.accept());
 			idCount++;
 		}
@@ -75,21 +77,38 @@ public class Server {
 		return responseQueue.poll();
 	}
 
-	public static void main(String[] args) throws Exception {
-		Properties prop = new Properties();
-		InputStream input = new FileInputStream("config.properties");
-		prop.load(input);
-		int serverport = Integer.parseInt(prop.getProperty("serverport"));
-		String database = prop.getProperty("database");
-		String user = prop.getProperty("user");
-		int numConnections = Integer.parseInt(prop
-				.getProperty("numConnections"));
-		int numThreads = Integer.parseInt(prop.getProperty("numThreads"));
-		input.close();
+	public static void main(String[] args) {
+		try {
+			int serverNumber = Integer.parseInt(args[0]);
+			Properties prop = new Properties();
+			InputStream input = new FileInputStream("config.properties");
+			prop.load(input);
+			int serverport = Integer.parseInt(prop.getProperty("serverport"
+					+ serverNumber));
+			String database = prop.getProperty("database");
+			String user = prop.getProperty("user");
+			int numConnections = Integer.parseInt(prop
+					.getProperty("numConnections"));
+			int numThreads = Integer.parseInt(prop.getProperty("numThreads"));
+			int numClients = Integer.parseInt(prop.getProperty("numClients"));
+			int idRangeStart = 0;
+			int idRangeEnd = 0;
+			if (serverNumber == 1) {
+				idRangeStart = 1;
+				idRangeEnd = numClients / 2;
+			} else {
+				idRangeStart = numClients / 2 + 1;
+				idRangeEnd = numClients;
+			}
+			input.close();
 
-		new Server(serverport, database, user, numConnections, numThreads);
-		// to clean up resources
-		// server.close();
+			new Server(serverport, database, user, numConnections, numThreads,
+					idRangeStart, idRangeEnd);
+			// to clean up resources
+			// server.close();
+		} catch (Exception e) {
+			Util.serverErrorLogger.catching(e);
+		}
 	}
 
 }

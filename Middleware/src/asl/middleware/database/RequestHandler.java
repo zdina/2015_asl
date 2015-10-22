@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import asl.ErrorCodes;
 import asl.RequestCodes;
@@ -57,6 +56,8 @@ public class RequestHandler {
 			}
 		} catch (SQLException e) {
 			response = ErrorCodes.SQL_ERROR + " " + e.getMessage();
+			Util.serverErrorLogger.debug(cp.getRequest());
+			Util.serverErrorLogger.catching(e);
 		}
 		cp.setTimeDbReceived(System.nanoTime());
 	}
@@ -64,10 +65,9 @@ public class RequestHandler {
 	public String getResponse() {
 		return response;
 	}
-	
 
 	/*
-	 * Register Request: code 
+	 * Register Request: code
 	 */
 	private void register() throws SQLException {
 		String query = "SELECT registerClient(?)";
@@ -92,8 +92,8 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Remove Queue Request: code _ id. Can't delete queue, if there are
-	 * still messages.
+	 * Remove Queue Request: code _ id. Can't delete queue, if there are still
+	 * messages.
 	 */
 	private void removeQueue() throws SQLException {
 		long queueId = Long.parseLong(requestParts[1]);
@@ -127,12 +127,11 @@ public class RequestHandler {
 		stmt.setLong(2, receiverId);
 		stmt.setLong(3, queueId);
 		stmt.setString(4, content);
-		
-		
+
 		ResultSet rs = stmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-		
+
 		if (dbresponse.equals("noreceiver"))
 			response = ErrorCodes.WRONG_CLIENT_ID + " " + receiverId;
 		else if (dbresponse.equals("noqueue"))
@@ -184,8 +183,7 @@ public class RequestHandler {
 	}
 
 	/*
-	 * Pops/peeks message by specific sender: code _ receiverid _
-	 * senderid
+	 * Pops/peeks message by specific sender: code _ receiverid _ senderid
 	 */
 	public void queryBySender(boolean doDelete) throws SQLException {
 		long receiverid = Long.parseLong(requestParts[1]);

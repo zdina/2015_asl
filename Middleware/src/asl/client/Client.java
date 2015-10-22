@@ -98,19 +98,22 @@ public class Client implements Runnable {
 
 	public static void main(String[] args) {
 		try {
+			int serverNumber = Integer.parseInt(args[0]);
 			Properties prop = new Properties();
 			InputStream input = new FileInputStream("config.properties");
 			prop.load(input);
-			String serverhost = prop.getProperty("serverhost");
-			int serverport = Integer.parseInt(prop.getProperty("serverport"));
+			String serverhost = prop.getProperty("serverhost" + serverNumber);
+			int serverport = Integer.parseInt(prop.getProperty("serverport" + serverNumber));
 			int messageLength = Integer.parseInt(prop
 					.getProperty("messageLength"));
 			int numClients = Integer.parseInt(prop.getProperty("numClients"));
+			int clientsPerMachine = Integer.parseInt(prop.getProperty("clientsPerMachine"));
 			input.close();
 			int experimentTime = Integer.parseInt(prop.getProperty("experimentTime"));
 
 			ArrayList<Client> clientThreads = new ArrayList<Client>();
-			for (int i = 0; i < numClients; i++) {
+			for (int i = 0; i < clientsPerMachine; i++) {
+				System.out.println("Starting client " + i);
 				Client c = new Client(serverhost, serverport, messageLength,
 						numClients);
 				Thread t = new Thread(c);
@@ -119,12 +122,13 @@ public class Client implements Runnable {
 			}
 			
 			Thread.sleep(experimentTime * 60000);
-			for (int i = 0; i < numClients; i++) {
+			for (int i = 0; i < clientsPerMachine; i++) {
 				clientThreads.get(i).terminate();
 			}
 
 		} catch (Exception e) {
 			Util.clientErrorLogger.catching(e);
+			e.printStackTrace();
 		}
 	}
 

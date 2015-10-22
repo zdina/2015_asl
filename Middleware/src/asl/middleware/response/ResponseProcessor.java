@@ -43,7 +43,7 @@ public class ResponseProcessor implements Runnable {
 							responseSent - cp.getTimeDbReceived(), responseSent
 									- cp.getTimeArrival());
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					Util.serverErrorLogger.catching(e);
 					e.printStackTrace();
 				}
 			}

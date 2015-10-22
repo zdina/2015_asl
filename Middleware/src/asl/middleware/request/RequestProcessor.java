@@ -1,15 +1,16 @@
 package asl.middleware.request;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.Map;
 
-import asl.middleware.Processor;
+import asl.Util;
 import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 
 public class RequestProcessor implements Runnable {
-	
+
 	private Server middleware;
 	private Map<Long, Socket> clients;
 
@@ -39,10 +40,11 @@ public class RequestProcessor implements Runnable {
 						}
 						String request = sb.toString();
 						System.out.println("Request received: " + request);
-						middleware.addToRequestQueue(new RequestWrapper(clientId, request, System.nanoTime()));
+						middleware.addToRequestQueue(new RequestWrapper(
+								clientId, request, System.nanoTime()));
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					Util.serverErrorLogger.catching(e);
 					e.printStackTrace();
 				}
 			}

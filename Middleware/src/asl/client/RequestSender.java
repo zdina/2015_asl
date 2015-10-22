@@ -60,8 +60,7 @@ public class RequestSender {
 			System.out.println("Request sent: " + request);
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Util.clientErrorLogger.catching(e);
 		}
 	}
 

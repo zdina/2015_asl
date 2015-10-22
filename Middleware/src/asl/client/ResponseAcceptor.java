@@ -47,7 +47,9 @@ public class ResponseAcceptor implements Runnable {
 					rh.processResponse(response);
 				}
 			} catch (Exception e) {
+				Util.clientErrorLogger.debug(rs.getRequestcode());
 				Util.clientErrorLogger.catching(e);
+				e.printStackTrace();
 			}
 		}
 	}

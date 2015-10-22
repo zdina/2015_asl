@@ -34,7 +34,7 @@ public class DatabaseProcessor extends Processor {
 		emptyDb();
 		System.out.println("DatabaseProcessor started.");
 	}
-	
+
 	private void emptyDb() throws SQLException {
 		Connection con = getConnectionFromPool();
 		PreparedStatement stmt = con.prepareStatement("select emptydb()");
