@@ -10,7 +10,7 @@ BEGIN
 result := '';
 count := 0;
 
-FOR qid IN SELECT DISTINCT queueid FROM message WHERE receiverid = rid LOOP
+FOR qid IN SELECT DISTINCT queueid FROM message WHERE receiverid = rid OR receiverid = 0 LOOP
   result := result||' '||CAST(qid AS text);
   count := count + 1;
 END LOOP;

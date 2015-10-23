@@ -1,13 +1,16 @@
 DROP FUNCTION IF EXISTS registerClient();
-CREATE or REPLACE FUNCTION registerClient(cid BIGINT) RETURNS text AS
+CREATE or REPLACE FUNCTION registerClient() RETURNS text AS
 $result$
 DECLARE
   result text;
-  qid BIGINT;
+  cid BIGINT;
 BEGIN
 
-INSERT INTO client(id) VALUES(cid) RETURNING id INTO qid;
-result := CAST(qid AS text);
+cid := NEXTVAL('client_id_seq');
+
+INSERT INTO client(id) VALUES(cid);
+
+result := CAST(cid AS text);
 
 RETURN result;
 END;

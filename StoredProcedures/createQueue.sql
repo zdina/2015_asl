@@ -6,7 +6,10 @@ DECLARE
   qid BIGINT;
 BEGIN
 
-INSERT INTO queue(name) VALUES('a') RETURNING id INTO qid;
+qid := NEXTVAL('queue_id_seq');
+
+INSERT INTO queue(id) VALUES(qid);
+
 result := CAST(qid AS text);
 
 RETURN result;

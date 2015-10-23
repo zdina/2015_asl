@@ -7,6 +7,11 @@ DELETE FROM message;
 DELETE FROM queue;
 DELETE FROM client;
 
+INSERT INTO client(id) VALUES(0);
+ALTER SEQUENCE client_id_seq RESTART WITH 1;
+ALTER SEQUENCE queue_id_seq RESTART WITH 1;
+ALTER SEQUENCE message_id_seq RESTART WITH 1;
+
 END;
 $$
 LANGUAGE 'plpgsql';
