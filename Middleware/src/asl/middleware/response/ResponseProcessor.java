@@ -11,11 +11,12 @@ import asl.middleware.Server;
 public class ResponseProcessor implements Runnable {
 
 	private Server middleware;
+	private long startTime;
 
 	public ResponseProcessor(Server middleware) {
 		this.middleware = middleware;
+		startTime = System.currentTimeMillis();
 	}
-
 
 	@Override
 	public void run() {
@@ -35,11 +36,13 @@ public class ResponseProcessor implements Runnable {
 
 					os.write(finishedByteResponse);
 
-					long dbClientId = middleware.getClientDbId(cp.getInternalClientId());
+					long dbClientId = middleware.getClientDbId(cp
+							.getInternalClientId());
 					long responseSent = System.nanoTime();
-					Util.serverLogger.info("{},{},{},{},{},{},{},{}", System
-							.nanoTime(), dbClientId, cp.getRequest()
-							.split(" ")[0], cp.getResponse().split(" ")[0],
+					Util.serverLogger.info("{},{},{},{},{},{},{},{}",
+							System.currentTimeMillis() - startTime, dbClientId,
+							cp.getRequest().split(" ")[0], cp.getResponse()
+									.split(" ")[0],
 							cp.getTimeDbStart() - cp.getTimeArrival(),
 							cp.getTimeDbReceived() - cp.getTimeDbStart(),
 							responseSent - cp.getTimeDbReceived(), responseSent
