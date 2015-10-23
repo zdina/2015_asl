@@ -12,7 +12,8 @@ public class ResponseHandler {
 		this.c = c;
 	}
 	
-	public void processResponse(String response) throws Exception {
+	public void processResponse(String response) {
+		try {
 		String[] responseParts = response.split(" ");
 		int responseCode = Integer.parseInt(responseParts[0]);
 		
@@ -57,12 +58,16 @@ public class ResponseHandler {
 			handleUnknownResponseCode();
 			break;
 		}
+		}
+		catch (Exception e) {
+			Util.clientErrorLogger.catching(e);
+		}
 		
 //		if (responseCode != ErrorCodes.WRONG_CLIENT_ID)
 			c.nextRequest();
 	}
 	
-	private void handleQueryBySender(String[] responseParts) {
+	private void handleQueryBySender(String[] responseParts) throws Exception {
 		long senderId = Long.parseLong(responseParts[1]);
 		if (responseParts.length == 3) {
 			String message = responseParts[2];
@@ -75,7 +80,7 @@ public class ResponseHandler {
 		
 	}
 
-	private void handleQueueInUse(String[] responseParts) {
+	private void handleQueueInUse(String[] responseParts) throws Exception {
 		// do something
 	}
 
@@ -83,7 +88,7 @@ public class ResponseHandler {
 	 * Peek queue:
 	 * code _ queueid _ content (if any message available)
 	 */
-	private void handlePeekQueue(String[] responseParts) {
+	private void handlePeekQueue(String[] responseParts) throws Exception {
 		long queueId = Long.parseLong(responseParts[1]);
 		if (responseParts.length == 3) {
 			String message = responseParts[2];
@@ -99,22 +104,22 @@ public class ResponseHandler {
 	 * List of queues that have messages for the client
 	 * code _ num queues _ q1 .. qn
 	 */
-	private void handleQueues(String[] responseParts) {
+	private void handleQueues(String[] responseParts) throws Exception {
 		int numQueues = Integer.parseInt(responseParts[1]);
 		for (int i = 0; i < numQueues; i++)
 			c.addQueueId(Long.parseLong(responseParts[i+2]));
 	}
 
-	private void handleWrongReceiverId(String[] responseParts) {
+	private void handleWrongReceiverId(String[] responseParts) throws Exception {
 		long id = Long.parseLong(responseParts[1]);
 		// do something with wrong receiver id
 	}
 
-	private void handleSQLError(String response) {
+	private void handleSQLError(String response) throws Exception {
 		Util.clientErrorLogger.error(response);
 	}
 
-	private void handleUnknownResponseCode() {
+	private void handleUnknownResponseCode() throws Exception  {
 		// TODO Auto-generated method stub
 		
 	}
@@ -123,22 +128,22 @@ public class ResponseHandler {
 	 * Register response:
 	 * code _ id
 	 */
-	private void handleRegisterResponse(String[] responseParts) {
+	private void handleRegisterResponse(String[] responseParts) throws Exception  {
 		long id = Long.parseLong(responseParts[1]);
 		c.setId(id);
 	}
 	
-	private void handleCreateQueueResponse(String[] responseParts) {
+	private void handleCreateQueueResponse(String[] responseParts) throws Exception {
 		long id = Long.parseLong(responseParts[1]);
 		c.addQueueId(id);
 	}
 	
-	private void handleRemoveQueueResponse(String[] responseParts) {
+	private void handleRemoveQueueResponse(String[] responseParts) throws Exception {
 		long id = Long.parseLong(responseParts[1]);
 		c.removeQueueId(id);
 	}
 	
-	private void handleWrongSenderIdError() {
+	private void handleWrongSenderIdError() throws Exception {
 //		c.register();
 	}
 

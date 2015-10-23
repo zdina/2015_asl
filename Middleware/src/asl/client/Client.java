@@ -58,13 +58,14 @@ public class Client implements Runnable {
 
 	public void setId(long id) {
 		rs.setId(id);
+		ra.setId(id);
 	}
 
 	public void register() {
 		rs.register();
 	}
 
-	public void nextRequest() throws IOException {
+	public void nextRequest() {
 		// Thread.sleep(2000);
 
 		if (queues.isEmpty())
@@ -81,6 +82,10 @@ public class Client implements Runnable {
 			// assuming that ids start with 1
 			int receiverId = (int) (Math.random() * numClients + 1);
 			rs.sendMessage(receiverId, generateContent(), randomQueue);
+		} else if (Math.random() < 0.7) {
+			long randomQueue = queues
+					.get((int) (Math.random() * queues.size()));
+			rs.broadcast(generateContent(), randomQueue);
 		} else if (Math.random() < 0.5) {
 			rs.createQueue();
 		} else
@@ -103,13 +108,16 @@ public class Client implements Runnable {
 			InputStream input = new FileInputStream("config.properties");
 			prop.load(input);
 			String serverhost = prop.getProperty("serverhost" + serverNumber);
-			int serverport = Integer.parseInt(prop.getProperty("serverport" + serverNumber));
+			int serverport = Integer.parseInt(prop.getProperty("serverport"
+					+ serverNumber));
 			int messageLength = Integer.parseInt(prop
 					.getProperty("messageLength"));
 			int numClients = Integer.parseInt(prop.getProperty("numClients"));
-			int clientsPerMachine = Integer.parseInt(prop.getProperty("clientsPerMachine"));
+			int clientsPerMachine = Integer.parseInt(prop
+					.getProperty("clientsPerMachine"));
 			input.close();
-			int experimentTime = Integer.parseInt(prop.getProperty("experimentTime"));
+			int experimentTime = Integer.parseInt(prop
+					.getProperty("experimentTime"));
 
 			ArrayList<Client> clientThreads = new ArrayList<Client>();
 			for (int i = 0; i < clientsPerMachine; i++) {
@@ -120,7 +128,7 @@ public class Client implements Runnable {
 				t.start();
 				clientThreads.add(c);
 			}
-			
+
 			Thread.sleep(experimentTime * 60000);
 			for (int i = 0; i < clientsPerMachine; i++) {
 				clientThreads.get(i).terminate();

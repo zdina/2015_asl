@@ -10,45 +10,75 @@ import asl.RequestCodes;
 import asl.ResponseCodes;
 import asl.Util;
 import asl.middleware.RequestWrapper;
+import asl.middleware.Server;
 
 public class RequestHandler {
 
-	private String[] requestParts;
 	private Connection con;
-	private RequestWrapper cp;
+	private Server middleware;
 	private String response;
 
-	public RequestHandler(RequestWrapper cp, Connection con) {
-		this.cp = cp;
+	private PreparedStatement registerStmt;
+	private PreparedStatement createQueueStmt;
+	private PreparedStatement removeQueueStmt;
+	private PreparedStatement sendMessageStmt;
+	private PreparedStatement queryByQueueStmt;
+	private PreparedStatement queryForQueuesStmt;
+	private PreparedStatement queryBySenderStmt;
+
+	public RequestHandler(Connection con, Server middleware) {
 		this.con = con;
-		requestParts = cp.getRequest().split(" ");
+		this.middleware = middleware;
+		initStatements();
+	}
+	
+	private void initStatements() {
+		try {
+			registerStmt = con.prepareStatement("SELECT registerClient()");
+			createQueueStmt = con.prepareStatement("SELECT createQueue()");
+			removeQueueStmt = con.prepareStatement("SELECT removeQueue(?)");
+			sendMessageStmt = con
+					.prepareStatement("SELECT sendMessage(?, ?, ?, ?)");
+			queryByQueueStmt = con
+					.prepareStatement("SELECT queryByQueue(?,?,?)");
+			queryForQueuesStmt = con
+					.prepareStatement("SELECT queryForQueues(?)");
+			queryBySenderStmt = con
+					.prepareStatement("SELECT queryBySender(?,?,?)");
+		} catch (SQLException e) {
+			Util.serverErrorLogger.catching(e);
+		}
+	}
+
+	public void processRequest(RequestWrapper cp) {
+		String[] requestParts = cp.getRequest().split(" ");
 		int requestCode = Integer.parseInt(requestParts[0]);
 		cp.setTimeDbStart(System.nanoTime());
 		try {
 			switch (requestCode) {
 			case RequestCodes.REGISTER:
-				register();
+				register(requestParts, cp.getInternalClientId());
 				break;
 			case RequestCodes.SEND_MESSAGE:
-				send();
+				send(requestParts);
 				break;
 			case RequestCodes.CREATE_QUEUE:
-				createQueue();
+				createQueue(requestParts);
 				break;
 			case RequestCodes.REMOVE_QUEUE:
-				removeQueue();
+				removeQueue(requestParts);
 				break;
 			case RequestCodes.QUERY_FOR_QUEUES:
-				queryForQueuesWithMessages();
+				queryForQueuesWithMessages(requestParts);
 				break;
 			case RequestCodes.PEEK_QUEUE:
-				queryByQueue(false);
+				queryByQueue(requestParts, false);
 				break;
 			case RequestCodes.POP_QUEUE:
-				queryByQueue(true);
+				queryByQueue(requestParts, true);
 				break;
 			case RequestCodes.POP_BY_SENDER:
-				queryBySender(true);
+				queryBySender(requestParts, true);
 				break;
 			default:
 				// unclear message
@@ -56,7 +86,7 @@ public class RequestHandler {
 			}
 		} catch (SQLException e) {
 			response = ErrorCodes.SQL_ERROR + " " + e.getMessage();
-			Util.serverErrorLogger.debug(cp.getRequest());
+			Util.serverErrorLogger.error(cp.getRequest());
 			Util.serverErrorLogger.catching(e);
 		}
 		cp.setTimeDbReceived(System.nanoTime());
@@ -69,23 +99,20 @@ public class RequestHandler {
 	/*
 	 * Register Request: code
 	 */
-	private void register() throws SQLException {
-		String query = "SELECT registerClient(?)";
-		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, cp.getClientId());
-		ResultSet rs = stmt.executeQuery();
+	private void register(String[] requestParts, long internalId)
+			throws SQLException {
+		ResultSet rs = registerStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + dbresponse;
+		middleware.setClientDbId(internalId, Long.parseLong(dbresponse));
 	}
 
 	/*
 	 * Create Queue Request: code
 	 */
-	private void createQueue() throws SQLException {
-		String query = "SELECT createQueue()";
-		PreparedStatement stmt = con.prepareStatement(query);
-		ResultSet rs = stmt.executeQuery();
+	private void createQueue(String[] requestParts) throws SQLException {
+		ResultSet rs = createQueueStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 		response = ResponseCodes.CREATE_QUEUE_RESPONSE_CODE + " " + dbresponse;
@@ -95,12 +122,10 @@ public class RequestHandler {
 	 * Remove Queue Request: code _ id. Can't delete queue, if there are still
 	 * messages.
 	 */
-	private void removeQueue() throws SQLException {
+	private void removeQueue(String[] requestParts) throws SQLException {
 		long queueId = Long.parseLong(requestParts[1]);
-		String query = "SELECT removeQueue(?)";
-		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, queueId);
-		ResultSet rs = stmt.executeQuery();
+		removeQueueStmt.setLong(1, queueId);
+		ResultSet rs = removeQueueStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 		if (dbresponse.equals("noqueue"))
@@ -115,20 +140,18 @@ public class RequestHandler {
 	 * Message Send Request: code _ port _ senderId _ receiverId _ queueId _
 	 * content
 	 */
-	private void send() throws SQLException {
+	private void send(String[] requestParts) throws SQLException {
 		long senderId = Long.parseLong(requestParts[1]);
 		long receiverId = Long.parseLong(requestParts[2]);
 		long queueId = Long.parseLong(requestParts[3]);
 		String content = requestParts[4];
 
-		String insert = "SELECT sendMessage(?, ?, ?, ?)";
-		PreparedStatement stmt = con.prepareStatement(insert);
-		stmt.setLong(1, senderId);
-		stmt.setLong(2, receiverId);
-		stmt.setLong(3, queueId);
-		stmt.setString(4, content);
+		sendMessageStmt.setLong(1, senderId);
+		sendMessageStmt.setLong(2, receiverId);
+		sendMessageStmt.setLong(3, queueId);
+		sendMessageStmt.setString(4, content);
 
-		ResultSet rs = stmt.executeQuery();
+		ResultSet rs = sendMessageStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 
@@ -143,15 +166,15 @@ public class RequestHandler {
 	/*
 	 * Peek (or pop if param true) Queue: code _ receiverid _ queueid
 	 */
-	public void queryByQueue(boolean doDelete) throws SQLException {
+	public void queryByQueue(String[] requestParts, boolean doDelete)
+			throws SQLException {
 		long receiverid = Long.parseLong(requestParts[1]);
 		long queueid = Long.parseLong(requestParts[2]);
-		String query = "SELECT queryByQueue(?,?,?)";
-		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, receiverid);
-		stmt.setLong(2, queueid);
-		stmt.setBoolean(3, doDelete);
-		ResultSet rs = stmt.executeQuery();
+
+		queryByQueueStmt.setLong(1, receiverid);
+		queryByQueueStmt.setLong(2, queueid);
+		queryByQueueStmt.setBoolean(3, doDelete);
+		ResultSet rs = queryByQueueStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 		if (dbresponse.equals("noqueue"))
@@ -171,12 +194,11 @@ public class RequestHandler {
 	/*
 	 * Query for queues with messages: code _ receiverid
 	 */
-	public void queryForQueuesWithMessages() throws SQLException {
+	public void queryForQueuesWithMessages(String[] requestParts)
+			throws SQLException {
 		long receiverid = Long.parseLong(requestParts[1]);
-		String query = "SELECT queryForQueues(?)";
-		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, receiverid);
-		ResultSet rs = stmt.executeQuery();
+		queryForQueuesStmt.setLong(1, receiverid);
+		ResultSet rs = queryForQueuesStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 		response = ResponseCodes.QUERY_QUEUES_RESPONSE_CODE + " " + dbresponse;
@@ -185,15 +207,15 @@ public class RequestHandler {
 	/*
 	 * Pops/peeks message by specific sender: code _ receiverid _ senderid
 	 */
-	public void queryBySender(boolean doDelete) throws SQLException {
+	public void queryBySender(String[] requestParts, boolean doDelete)
+			throws SQLException {
 		long receiverid = Long.parseLong(requestParts[1]);
 		long senderid = Long.parseLong(requestParts[2]);
-		String query = "SELECT queryBySender(?,?,?)";
-		PreparedStatement stmt = con.prepareStatement(query);
-		stmt.setLong(1, receiverid);
-		stmt.setLong(2, senderid);
-		stmt.setBoolean(3, doDelete);
-		ResultSet rs = stmt.executeQuery();
+
+		queryBySenderStmt.setLong(1, receiverid);
+		queryBySenderStmt.setLong(2, senderid);
+		queryBySenderStmt.setBoolean(3, doDelete);
+		ResultSet rs = queryBySenderStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
 		if (dbresponse.equals("nosender"))

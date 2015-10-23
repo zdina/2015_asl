@@ -17,8 +17,7 @@ public class RequestSender {
 	private long ownId;
 	
 
-	private long nanoTime;
-	private String requestCode;
+	private Request r;
 
 
 	public RequestSender(String middlewareIp, int middlewarePort, Socket socket)
@@ -35,12 +34,8 @@ public class RequestSender {
 	}
 	
 	
-	public long getNanoTime() {
-		return nanoTime;
-	}
-	
-	public String getRequestcode() {
-		return requestCode;
+	public Request getRequest() {
+		return r;
 	}
 
 	
@@ -54,8 +49,9 @@ public class RequestSender {
 			finishedByteRequest[finishedByteRequest.length - 1] = 0;
 			
 			os.write(finishedByteRequest);
-			nanoTime = System.nanoTime();
-			requestCode = request.split(" ")[0];
+			long nanoTime = System.nanoTime();
+			int requestCode = Integer.parseInt(request.split(" ")[0]);
+			r = new Request(request, nanoTime, requestCode);
 			
 			System.out.println("Request sent: " + request);
 			
@@ -83,7 +79,12 @@ public class RequestSender {
 	 * Sends message to a queue indicating a receiver (no need for explicit receiver)
 	 */
 	public void sendMessage(long receiverId, String content, long queueId) {
-		String request = RequestCodes.SEND_MESSAGE + " " + ownId + " " + receiverId + " " + queueId + " " + content + " ";
+		String request = RequestCodes.SEND_MESSAGE + " " + ownId + " " + receiverId + " " + queueId + " " + content;
+		executeRequest(request);
+	}
+	
+	public void broadcast(String content, long queueId) {
+		String request = RequestCodes.SEND_MESSAGE + " " + ownId + " " + Util.NO_RECEIVER_CODE + " " + queueId + " " + content;
 		executeRequest(request);
 	}
 	

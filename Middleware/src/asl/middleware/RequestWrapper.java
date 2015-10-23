@@ -4,15 +4,15 @@ public class RequestWrapper {
 
 	private String request;
 	private String response;
-	private long clientId;
+	private long internalClientId;
 	
 	private long timeArrival;
 	private long timeDbStart;
 	private long timeDbReceived;
 	private long timeResponse;
 
-	public RequestWrapper(long clientId, String request, long timeArrival) {
-		this.clientId = clientId;
+	public RequestWrapper(long internalClientId, String request, long timeArrival) {
+		this.internalClientId = internalClientId;
 		this.request = request;
 		this.timeArrival = timeArrival;
 		response = null;
@@ -54,8 +54,8 @@ public class RequestWrapper {
 		return request;
 	}
 	
-	public long getClientId() {
-		return clientId;
+	public long getInternalClientId() {
+		return internalClientId;
 	}
 
 	

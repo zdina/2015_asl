@@ -20,7 +20,7 @@ public class DatabaseProcessor extends Processor {
 
 	public int numConnections;
 
-	private Vector<Connection> connectionPool;
+	private Vector<RequestHandler> connectionPool;
 
 	public DatabaseProcessor(Server middleware, String database, String user,
 			int numConnections, int numThreads) throws Exception {
@@ -29,17 +29,9 @@ public class DatabaseProcessor extends Processor {
 		this.userName = user;
 		this.numConnections = numConnections;
 
-		connectionPool = new Vector<Connection>();
-		initializeConnectionPool();
-		emptyDb();
+		connectionPool = new Vector<RequestHandler>();
+		initializeRequestHandlerPool();
 		System.out.println("DatabaseProcessor started.");
-	}
-
-	private void emptyDb() throws SQLException {
-		Connection con = getConnectionFromPool();
-		PreparedStatement stmt = con.prepareStatement("select emptydb()");
-		stmt.executeQuery();
-		returnConnectionToPool(con);
 	}
 
 	public void run() {
@@ -52,13 +44,13 @@ public class DatabaseProcessor extends Processor {
 		}
 	}
 
-	private void initializeConnectionPool() {
+	private void initializeRequestHandlerPool() {
 		while (connectionPool.size() < numConnections)
-			connectionPool.addElement(createNewConnectionForPool());
+			connectionPool.addElement(createNewRequestHandlerWithConnectionForPool());
 
 	}
 
-	private Connection createNewConnectionForPool() {
+	private RequestHandler createNewRequestHandlerWithConnectionForPool() {
 		Connection connection = null;
 
 		try {
@@ -74,20 +66,20 @@ public class DatabaseProcessor extends Processor {
 			return null;
 		}
 
-		return connection;
+		return new RequestHandler(connection, middleware);
 	}
 
-	public synchronized Connection getConnectionFromPool() {
-		Connection connection = null;
+	public synchronized RequestHandler getRequestHandlerFromPool() {
+		RequestHandler rh = null;
 		if (connectionPool.size() > 0) {
-			connection = (Connection) connectionPool.firstElement();
+			rh = (RequestHandler) connectionPool.firstElement();
 			connectionPool.removeElementAt(0);
 		}
-		return connection;
+		return rh;
 	}
 
-	public synchronized void returnConnectionToPool(Connection connection) {
-		connectionPool.addElement(connection);
+	public synchronized void returnRequestHandlerToPool(RequestHandler rh) {
+		connectionPool.addElement(rh);
 	}
 
 }

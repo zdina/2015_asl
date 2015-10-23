@@ -8,7 +8,6 @@ import asl.middleware.Server;
 public class DatabaseWorker implements Runnable {
 
 	private DatabaseProcessor dp;
-	private Connection con;
 	private RequestWrapper cr;
 	private Server middleware;
 
@@ -20,19 +19,19 @@ public class DatabaseWorker implements Runnable {
 	}
 
 	public void run() {
-		con = dp.getConnectionFromPool();
-		while (con == null)
-			con = dp.getConnectionFromPool();
+		RequestHandler rh = dp.getRequestHandlerFromPool();
+		while (rh == null)
+			rh = dp.getRequestHandlerFromPool();
 
-		RequestHandler rt = new RequestHandler(cr, con);
-		String response = rt.getResponse();
+		rh.processRequest(cr);
+		String response = rh.getResponse();
 		if (response != null) {
 			response = response.replace("\n", " ");
 			cr.setResponse(response);
 			middleware.addToResponseQueue(cr);
 		}
 
-		dp.returnConnectionToPool(con);
+		dp.returnRequestHandlerToPool(rh);
 	}
 
 }

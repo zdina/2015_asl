@@ -12,6 +12,8 @@ public class ResponseAcceptor implements Runnable {
 	private RequestSender rs;
 	private InputStream in;
 	private boolean running;
+	private long ownId;
+	
 
 	public ResponseAcceptor(RequestSender rs, Socket socket, ResponseHandler rh)
 			throws IOException {
@@ -19,6 +21,10 @@ public class ResponseAcceptor implements Runnable {
 		this.rh = rh;
 		this.rs = rs;
 		running = true;
+	}
+	
+	public void setId(long ownId) {
+		this.ownId = ownId;
 	}
 
 	@Override
@@ -34,20 +40,25 @@ public class ResponseAcceptor implements Runnable {
 						in.read(requestBytes);
 						if (requestBytes[availableBytes - 1] == 0)
 							lastByteFound = true;
-						else
-							availableBytes = in.available();
+						else {
+							while (availableBytes == 0)
+								availableBytes = in.available();
+						}
 						sb.append(new String(requestBytes));
 					}
 					String response = sb.toString();
-					long timePassed = System.nanoTime() - rs.getNanoTime();
+					
+					Request r = rs.getRequest();
+					
+					long timePassed = System.nanoTime() - r.getTimeSent();
 					Util.clientLogger.info("{},{},{},{},{}", System.nanoTime(),
-							rs.getId(), rs.getRequestcode(),
+							ownId, r.getRequestCode(),
 							response.split(" ")[0], timePassed);
 					System.out.println("Response received: " + response);
 					rh.processResponse(response);
 				}
-			} catch (Exception e) {
-				Util.clientErrorLogger.debug(rs.getRequestcode());
+			} catch (IOException e) {
+				Util.clientErrorLogger.error(rs.getRequest());
 				Util.clientErrorLogger.catching(e);
 				e.printStackTrace();
 			}

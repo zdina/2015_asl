@@ -19,19 +19,19 @@ public class Server {
 	private static ConcurrentLinkedQueue<RequestWrapper> requestQueue;
 	private static ConcurrentLinkedQueue<RequestWrapper> responseQueue;
 	private static Map<Long, Socket> clients;
+	private static Map<Long, Long> internalClientIdsToDbIds;
 	private long idCount;
-	private int idRangeEnd;
 
 	private ServerSocket server;
 
 	public Server(int port, String database, String user, int numConnections,
-			int numThreads, int idRangeStart, int idRangeEnd) throws Exception {
+			int numThreads) throws Exception {
 		requestQueue = new ConcurrentLinkedQueue<RequestWrapper>();
 		responseQueue = new ConcurrentLinkedQueue<RequestWrapper>();
 		clients = new ConcurrentHashMap<Long, Socket>();
+		internalClientIdsToDbIds = new ConcurrentHashMap<Long, Long>();
 		server = new ServerSocket(port);
-		idCount = idRangeStart;
-		this.idRangeEnd = idRangeEnd;
+		idCount = 1;
 
 		startProcessor(new RequestProcessor(this));
 		startProcessor(new DatabaseProcessor(this, database, user,
@@ -42,11 +42,20 @@ public class Server {
 	}
 
 	public void registerClients() throws Exception {
-		while (idCount <= idRangeEnd) {
+		while (true) {
 			clients.put(idCount, server.accept());
 			idCount++;
 		}
 	}
+	
+	public void setClientDbId(long internalId, long dbId) {
+		internalClientIdsToDbIds.put(internalId, dbId);
+	}
+	
+	public long getClientDbId(long internalId) {
+		return internalClientIdsToDbIds.get(internalId);
+	}
+	
 
 	public Map<Long, Socket> getClients() {
 		return clients;
@@ -90,24 +99,14 @@ public class Server {
 			int numConnections = Integer.parseInt(prop
 					.getProperty("numConnections"));
 			int numThreads = Integer.parseInt(prop.getProperty("numThreads"));
-			int numClients = Integer.parseInt(prop.getProperty("numClients"));
-			int idRangeStart = 0;
-			int idRangeEnd = 0;
-			if (serverNumber == 1) {
-				idRangeStart = 1;
-				idRangeEnd = numClients / 2;
-			} else {
-				idRangeStart = numClients / 2 + 1;
-				idRangeEnd = numClients;
-			}
 			input.close();
 
-			new Server(serverport, database, user, numConnections, numThreads,
-					idRangeStart, idRangeEnd);
+			new Server(serverport, database, user, numConnections, numThreads);
 			// to clean up resources
 			// server.close();
 		} catch (Exception e) {
 			Util.serverErrorLogger.catching(e);
+			e.printStackTrace();
 		}
 	}
 
