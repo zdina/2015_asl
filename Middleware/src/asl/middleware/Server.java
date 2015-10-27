@@ -6,13 +6,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import asl.Util;
 import asl.middleware.database.DatabaseProcessor;
-import asl.middleware.request.RequestProcessor;
-import asl.middleware.response.ResponseProcessor;
 
 public class Server {
 
@@ -24,7 +23,7 @@ public class Server {
 
 	private ServerSocket server;
 
-	public Server(int port, String database, String user, int numConnections,
+	public Server(int port, String database, String user, String password,
 			int numThreads) throws Exception {
 		requestQueue = new ConcurrentLinkedQueue<RequestWrapper>();
 		responseQueue = new ConcurrentLinkedQueue<RequestWrapper>();
@@ -34,9 +33,12 @@ public class Server {
 		idCount = 1;
 
 		startProcessor(new RequestProcessor(this));
-		startProcessor(new DatabaseProcessor(this, database, user,
-				numConnections, numThreads));
+		startProcessor(new DatabaseProcessor(this, database, user, password, numThreads));
 		startProcessor(new ResponseProcessor(this));
+		
+		Timer timer = new Timer();
+		timer.schedule(new QueueLogger(this), 0, 1000);
+		
 		System.out.println("Server started.");
 		registerClients();
 	}
@@ -69,6 +71,14 @@ public class Server {
 		Thread t = new Thread(p);
 		t.start();
 	}
+	
+	public int getRequestQueueSize() {
+		return requestQueue.size();
+	}
+
+	public int getResponseQueueSize() {
+		return responseQueue.size();
+	}
 
 	public void addToRequestQueue(RequestWrapper cr) {
 		requestQueue.add(cr);
@@ -96,12 +106,11 @@ public class Server {
 					+ serverNumber));
 			String database = prop.getProperty("database");
 			String user = prop.getProperty("user");
-			int numConnections = Integer.parseInt(prop
-					.getProperty("numConnections"));
+			String password = prop.getProperty("password");
 			int numThreads = Integer.parseInt(prop.getProperty("numThreads"));
 			input.close();
 
-			new Server(serverport, database, user, numConnections, numThreads);
+			new Server(serverport, database, user, password, numThreads);
 			// to clean up resources
 			// server.close();
 		} catch (Exception e) {

@@ -7,7 +7,7 @@ DECLARE
   mid BIGINT;
 BEGIN
 
-SELECT content, id INTO result, mid FROM message WHERE (receiverid = rid OR receiverid = 0) AND queueid = qid ORDER BY times ASC LIMIT 1;
+SELECT content, id INTO result, mid FROM message WHERE (receiverid = rid OR receiverid = 0) AND queueid = qid ORDER BY times ASC, id LIMIT 1;
 
 IF result IS NULL THEN
   SELECT count(id) INTO idcount FROM queue WHERE id = qid;

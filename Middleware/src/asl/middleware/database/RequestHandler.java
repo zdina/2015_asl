@@ -104,7 +104,7 @@ public class RequestHandler {
 		ResultSet rs = registerStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-		response = ResponseCodes.REGISTER_RESPONSE_CODE + " " + dbresponse;
+		response = ResponseCodes.REGISTER + " " + dbresponse;
 		middleware.setClientDbId(internalId, Long.parseLong(dbresponse));
 	}
 
@@ -115,7 +115,7 @@ public class RequestHandler {
 		ResultSet rs = createQueueStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-		response = ResponseCodes.CREATE_QUEUE_RESPONSE_CODE + " " + dbresponse;
+		response = ResponseCodes.CREATE_QUEUE + " " + dbresponse;
 	}
 
 	/*
@@ -133,7 +133,7 @@ public class RequestHandler {
 		else if (dbresponse.equals("inuse"))
 			response = ErrorCodes.QUEUE_CONTAINS_MESSAGES + " " + queueId;
 		else
-			response = ResponseCodes.REMOVE_QUEUE_RESPONSE_CODE + " " + queueId;
+			response = ResponseCodes.REMOVE_QUEUE + " " + queueId;
 	}
 
 	/*
@@ -160,7 +160,7 @@ public class RequestHandler {
 		else if (dbresponse.equals("noqueue"))
 			response = ErrorCodes.WRONG_QUEUE_ID + " " + queueId;
 		else
-			response = ResponseCodes.SEND_RESPONSE_CODE + "";
+			response = ResponseCodes.SEND + "";
 	}
 
 	/*
@@ -178,12 +178,12 @@ public class RequestHandler {
 		rs.next();
 		String dbresponse = rs.getString(1);
 		if (dbresponse.equals("noqueue"))
-			response = ErrorCodes.WRONG_CLIENT_ID + " " + queueid;
+			response = ErrorCodes.WRONG_QUEUE_ID + " " + queueid;
 		else {
 			if (doDelete)
-				response = ResponseCodes.POP_QUEUE_RESPONSE_CODE + " ";
+				response = ResponseCodes.POP_QUEUE + " ";
 			else
-				response = ResponseCodes.PEEK_QUEUE_RESPONSE_CODE + " ";
+				response = ResponseCodes.PEEK_QUEUE + " ";
 			if (dbresponse.equals("empty"))
 				response += queueid;
 			else
@@ -201,7 +201,7 @@ public class RequestHandler {
 		ResultSet rs = queryForQueuesStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-		response = ResponseCodes.QUERY_QUEUES_RESPONSE_CODE + " " + dbresponse;
+		response = ResponseCodes.QUERY_QUEUES + " " + dbresponse;
 	}
 
 	/*
@@ -222,9 +222,9 @@ public class RequestHandler {
 			response = ErrorCodes.WRONG_CLIENT_ID + " " + senderid;
 		else {
 			if (doDelete)
-				response = ResponseCodes.POP_SENDER_QUERY_RESPONSE_CODE + " ";
+				response = ResponseCodes.POP_SENDER + " ";
 			else
-				response = ResponseCodes.PEEK_SENDER_QUERY_RESPONSE_CODE + " ";
+				response = ResponseCodes.PEEK_SENDER + " ";
 			if (dbresponse.equals("empty"))
 				response += senderid; // sender vs receiver!!
 			else

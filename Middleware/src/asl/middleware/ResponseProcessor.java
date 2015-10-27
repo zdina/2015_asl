@@ -1,12 +1,10 @@
-package asl.middleware.response;
+package asl.middleware;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
 import asl.Util;
-import asl.middleware.RequestWrapper;
-import asl.middleware.Server;
 
 public class ResponseProcessor implements Runnable {
 

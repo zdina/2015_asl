@@ -3,7 +3,6 @@ package asl.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.util.Date;
 
 import asl.Util;
 
@@ -53,11 +52,11 @@ public class ResponseAcceptor implements Runnable {
 					Request r = rs.getRequest();
 
 					long timePassed = System.nanoTime() - r.getTimeSent();
-					Util.clientLogger.info("{},{},{},{},{}",
+					Util.clientLogger.info("{},{},{},{},{},{}",
 							System.currentTimeMillis() - startTime, ownId,
 							r.getRequestCode(), response.split(" ")[0],
-							timePassed);
-					System.out.println("Response received: " + response);
+							timePassed, response);
+					// System.out.println("Response received: " + response);
 					rh.processResponse(response);
 				}
 			} catch (IOException e) {
@@ -70,6 +69,7 @@ public class ResponseAcceptor implements Runnable {
 
 	public void terminate() {
 		running = false;
+		System.out.println("Client " + ownId + " terminated.");
 	}
 
 }

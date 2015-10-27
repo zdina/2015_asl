@@ -1,7 +1,5 @@
 package asl.middleware.database;
 
-import java.sql.Connection;
-
 import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 

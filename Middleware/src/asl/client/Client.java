@@ -1,7 +1,6 @@
 package asl.client;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -39,6 +38,51 @@ public class Client implements Runnable {
 		System.out.println("Client " + this.toString() + " started.");
 	}
 
+	public void nextRequest() {
+		// Thread.sleep(2000);
+		if (queues.isEmpty()) {
+			if (Math.random() < 0.5)
+				rs.createQueue();
+			else
+				rs.queryForQueuesWithMessages();
+		}
+		else {
+			int randomRequest = (int) (Math.random() * 9);
+			long randomQueue = queues.get((int) (Math.random() * queues.size()));
+			int randomClient = (int) (Math.random() * numClients + 1);
+			
+			switch (randomRequest) {
+			case 0:
+				rs.createQueue();
+				break;
+			case 1:
+				rs.removeQueue(randomQueue);
+				break;
+			case 2:
+				rs.broadcast(generateContent(), randomQueue);
+				break;
+			case 3:
+				rs.sendMessage(randomClient, generateContent(), randomQueue);
+				break;
+			case 4:
+				rs.queryFromSenderPop(randomClient);
+				break;
+			case 5:
+				rs.queryFromSenderPeek(randomClient);
+				break;
+			case 6:
+				rs.peekQueue(randomQueue);
+				break;
+			case 7:
+				rs.popQueue(randomQueue);
+				break;
+			case 8:
+				rs.queryForQueuesWithMessages();
+				break;
+			}
+		}
+	}
+
 	public void run() {
 		rs.register();
 	}
@@ -63,33 +107,6 @@ public class Client implements Runnable {
 
 	public void register() {
 		rs.register();
-	}
-
-	public void nextRequest() {
-		// Thread.sleep(2000);
-
-		if (queues.isEmpty())
-			rs.createQueue(); // or check for queues that hold messages!
-		else if (Math.random() < 0.2)
-			rs.queryFromSender(1);
-		else if (Math.random() < 0.4) {
-			long randomQueue = queues
-					.get((int) (Math.random() * queues.size()));
-			rs.removeQueue(randomQueue);
-		} else if (Math.random() < 0.7) {
-			long randomQueue = queues
-					.get((int) (Math.random() * queues.size()));
-			// assuming that ids start with 1
-			int receiverId = (int) (Math.random() * numClients + 1);
-			rs.sendMessage(receiverId, generateContent(), randomQueue);
-		} else if (Math.random() < 0.7) {
-			long randomQueue = queues
-					.get((int) (Math.random() * queues.size()));
-			rs.broadcast(generateContent(), randomQueue);
-		} else if (Math.random() < 0.5) {
-			rs.createQueue();
-		} else
-			rs.queryForQueuesWithMessages();
 	}
 
 	private String generateContent() {

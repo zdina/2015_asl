@@ -5,6 +5,7 @@
         <Property name="filename-client-error">logs/client-error.log</Property>
         <Property name="filename-server">logs/server.log</Property>
         <Property name="filename-server-error">logs/server-error.log</Property>
+        <Property name="filename-queues">logs/queues.log</Property>
     </Properties>
  
     <Appenders>
@@ -28,6 +29,9 @@
         <File name="appender-server-error" fileName="${filename-server-error}" append="true">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </File>
+        <File name="appender-queues" fileName="${filename-queues}" append="true">
+            <PatternLayout pattern="%msg%n" />
+        </File>
     </Appenders>
  
  
@@ -39,8 +43,8 @@
  
         <!-- server1-loggers -->
         <!-- additivity means, that parent-logger (in every case the root-logger) will also get the chance to log this stuff -->
-        <Logger name="asl.log.client" level="ALL">
-            <AppenderRef ref="appender-client" level="INFO" />
+        <Logger name="asl.log.client"  additivity="FALSE" level="ALL">
+            <AppenderRef ref="appender-client"  level="INFO" />
         </Logger>
         
         <Logger name="asl.log.error.client" level="ERROR">
@@ -49,12 +53,15 @@
  
         <!-- server2-loggers -->
         <!-- additivity means, that parent-logger (in every case the root-logger) will also get the chance to log this stuff -->
-        <Logger name="asl.log.server" additivity="TRUE" level="ALL">
+        <Logger name="asl.log.server" additivity="FALSE" level="ALL">
             <AppenderRef ref="appender-server" level="INFO" />
         </Logger>
         
         <Logger name="asl.log.error.server" level="ERROR">
             <AppenderRef ref="appender-server-error" level="ERROR" />
+        </Logger>
+        <Logger name="asl.log.queues"  additivity="FALSE" level="TRACE">
+            <AppenderRef ref="appender-queues" level="TRACE" />
         </Logger>
     </Loggers>
 </Configuration>

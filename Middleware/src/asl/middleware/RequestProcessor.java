@@ -1,4 +1,4 @@
-package asl.middleware.request;
+package asl.middleware;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,8 +6,6 @@ import java.net.Socket;
 import java.util.Map;
 
 import asl.Util;
-import asl.middleware.RequestWrapper;
-import asl.middleware.Server;
 
 public class RequestProcessor implements Runnable {
 
@@ -39,7 +37,7 @@ public class RequestProcessor implements Runnable {
 							sb.append(new String(requestBytes));
 						}
 						String request = sb.toString();
-						System.out.println("Request received: " + request);
+//						System.out.println("Request received: " + request);
 						middleware.addToRequestQueue(new RequestWrapper(
 								clientId, request, System.nanoTime()));
 					}

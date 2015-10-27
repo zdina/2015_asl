@@ -2,40 +2,47 @@ package asl.middleware.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Vector;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
-import asl.middleware.Processor;
 import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 
-public class DatabaseProcessor extends Processor {
+public class DatabaseProcessor implements Runnable {
 
 	public static final String DRIVER_NAME = "org.postgresql.Driver";
 
+	private Server middleware;
 	private String databaseUrl;
 	private String userName;
-	private String password = "";
+	private String password;
 
-	public int numConnections;
+	protected ThreadPoolExecutor executor;
+
+	public int numThreads;
 
 	private Vector<RequestHandler> connectionPool;
 
 	public DatabaseProcessor(Server middleware, String database, String user,
-			int numConnections, int numThreads) throws Exception {
-		super(middleware, numThreads);
+			String password, int numThreads) throws Exception {
+		this.middleware = middleware;
 		this.databaseUrl = "jdbc:postgresql://" + database;
 		this.userName = user;
-		this.numConnections = numConnections;
+		this.password = password;
+		this.numThreads = numThreads;
+
+		executor = (ThreadPoolExecutor) Executors
+				.newFixedThreadPool(numThreads);
 
 		connectionPool = new Vector<RequestHandler>();
 		initializeRequestHandlerPool();
-		System.out.println("DatabaseProcessor started.");
+		// System.out.println("DatabaseProcessor started.");
 	}
 
 	public void run() {
-		while (running) {
+		while (true) {
 			RequestWrapper cr = middleware.removeFromRequestQueue();
 			if (cr != null) {
 				DatabaseWorker dw = new DatabaseWorker(this, middleware, cr);
@@ -45,8 +52,9 @@ public class DatabaseProcessor extends Processor {
 	}
 
 	private void initializeRequestHandlerPool() {
-		while (connectionPool.size() < numConnections)
-			connectionPool.addElement(createNewRequestHandlerWithConnectionForPool());
+		while (connectionPool.size() < numThreads)
+			connectionPool
+					.addElement(createNewRequestHandlerWithConnectionForPool());
 
 	}
 
