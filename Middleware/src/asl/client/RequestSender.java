@@ -11,25 +11,24 @@ public class RequestSender {
 
 	private OutputStream os;
 	private long ownId;
+	
+	private Client c;
 
-	private Request r;
-
-	public RequestSender(String middlewareIp, int middlewarePort, Socket socket)
+	public RequestSender(Client c, String middlewareIp, int middlewarePort, Socket socket)
 			throws Exception {
 		this.os = socket.getOutputStream();
+		this.c = c;
 	}
 
 	public void setId(long id) {
 		this.ownId = id;
 	}
+//
+//	public long getId() {
+//		return ownId;
+//	}
 
-	public long getId() {
-		return ownId;
-	}
 
-	public Request getRequest() {
-		return r;
-	}
 
 	private void executeRequest(String request) {
 		try {
@@ -44,8 +43,8 @@ public class RequestSender {
 			os.write(finishedByteRequest);
 			long nanoTime = System.nanoTime();
 			int requestCode = Integer.parseInt(request.split(" ")[0]);
-			r = new Request(request, nanoTime, requestCode);
-
+			Request r = new Request(request, nanoTime, requestCode);
+			c.setRequest(r);
 //			System.out.println("Request sent: " + request);
 
 		} catch (IOException e) {

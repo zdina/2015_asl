@@ -98,6 +98,7 @@ public class ResponseHandler {
 	}
 
 	private void handleSQLError(String response) throws Exception {
+		Util.clientErrorLogger.error(c.getRequest().getRequest());
 		Util.clientErrorLogger.error(response);
 	}
 

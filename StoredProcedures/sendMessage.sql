@@ -1,4 +1,4 @@
-DROP FUNCTION IF EXISTS sendMessage(sid BIGINT, rid BIGINT, qid BIGINT);
+DROP FUNCTION IF EXISTS sendMessage(sid BIGINT, rid BIGINT, qid BIGINT, c TEXT);
 CREATE or REPLACE FUNCTION sendMessage(sid BIGINT, rid BIGINT, qid BIGINT, c TEXT) RETURNS text AS
 $result$
 DECLARE
@@ -12,6 +12,7 @@ SELECT id INTO rcheckid FROM client WHERE id = rid;
 IF rcheckid IS NULL THEN
   result := 'noreceiver';
 ELSE
+  #LOCK TABLE queue IN EXCLUSIVE MODE;
   SELECT id INTO qcheckid FROM queue WHERE id = qid;
   IF qcheckid IS NULL THEN
     result := 'noqueue';

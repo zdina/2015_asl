@@ -6,20 +6,23 @@ import java.net.Socket;
 
 import asl.Util;
 
+import com.sun.corba.se.impl.ior.ByteBuffer;
+
 public class ResponseAcceptor implements Runnable {
 
 	private ResponseHandler rh;
-	private RequestSender rs;
+	private Client c;
 	private InputStream in;
 	private boolean running;
 	private long ownId;
 	private long startTime;
+	private long stopTime;
 
-	public ResponseAcceptor(RequestSender rs, Socket socket, ResponseHandler rh)
+	public ResponseAcceptor(Client c, Socket socket, ResponseHandler rh)
 			throws IOException {
 		in = socket.getInputStream();
 		this.rh = rh;
-		this.rs = rs;
+		this.c = c;
 		running = true;
 		startTime = System.currentTimeMillis();
 	}
@@ -28,39 +31,32 @@ public class ResponseAcceptor implements Runnable {
 		this.ownId = ownId;
 	}
 
+	public long getStopTime() {
+		return stopTime;
+	}
+
 	@Override
 	public void run() {
 		while (running) {
 			try {
-				int availableBytes = in.available();
-				if (availableBytes > 0) {
-					boolean lastByteFound = false;
-					StringBuffer sb = new StringBuffer();
-					while (!lastByteFound) {
-						byte[] requestBytes = new byte[availableBytes];
-						in.read(requestBytes);
-						if (requestBytes[availableBytes - 1] == 0)
-							lastByteFound = true;
-						else {
-							while (availableBytes == 0)
-								availableBytes = in.available();
-						}
-						sb.append(new String(requestBytes));
-					}
-					String response = sb.toString();
-
-					Request r = rs.getRequest();
-
-					long timePassed = System.nanoTime() - r.getTimeSent();
-					Util.clientLogger.info("{},{},{},{},{},{}",
-							System.currentTimeMillis() - startTime, ownId,
-							r.getRequestCode(), response.split(" ")[0],
-							timePassed, response);
-					// System.out.println("Response received: " + response);
-					rh.processResponse(response);
+				ByteBuffer bb = new ByteBuffer();
+				byte b = 1;
+				while (b != 0) {
+					b = (byte) in.read();
+					bb.append(b);
 				}
-			} catch (IOException e) {
-				Util.clientErrorLogger.error(rs.getRequest());
+
+				String response = new String(bb.toArray());
+				Request r = c.getRequest();
+				stopTime = System.nanoTime();
+				long timePassed = stopTime - r.getTimeSent();
+				Util.clientLogger.info("{},{},{},{},{}",
+						System.currentTimeMillis() - startTime, ownId,
+						r.getRequestCode(),
+						Integer.parseInt(response.split(" ")[0]), timePassed);
+				rh.processResponse(response);
+			} catch (Exception e) {
+				Util.clientErrorLogger.error(c.getRequest().getRequest());
 				Util.clientErrorLogger.catching(e);
 				e.printStackTrace();
 			}

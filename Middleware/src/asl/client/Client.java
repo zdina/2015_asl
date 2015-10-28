@@ -20,6 +20,8 @@ public class Client implements Runnable {
 
 	private int numClients;
 	private int messageLength;
+	
+	private Request r;
 
 	public Client(String middlewareIp, int middlewarePort, int messageLength,
 			int numClients) throws Exception {
@@ -29,10 +31,10 @@ public class Client implements Runnable {
 		queues = new ArrayList<Long>();
 
 		this.socket = new Socket(middlewareIp, middlewarePort);
-		rs = new RequestSender(middlewareIp, middlewarePort, socket);
+		rs = new RequestSender(this, middlewareIp, middlewarePort, socket);
 		rh = new ResponseHandler(this);
 
-		ra = new ResponseAcceptor(rs, socket, rh);
+		ra = new ResponseAcceptor(this, socket, rh);
 		Thread t = new Thread(ra);
 		t.start();
 		System.out.println("Client " + this.toString() + " started.");
@@ -103,6 +105,14 @@ public class Client implements Runnable {
 	public void setId(long id) {
 		rs.setId(id);
 		ra.setId(id);
+	}
+	
+	public Request getRequest() {
+		return r;
+	}
+	
+	public void setRequest(Request r) {
+		this.r = r;
 	}
 
 	public void register() {

@@ -80,6 +80,9 @@ public class RequestHandler {
 			case RequestCodes.POP_BY_SENDER:
 				queryBySender(requestParts, true);
 				break;
+			case RequestCodes.PEEK_BY_SENDER:
+				queryBySender(requestParts, false);
+				break;
 			default:
 				// unclear message
 				break;
@@ -94,6 +97,10 @@ public class RequestHandler {
 
 	public String getResponse() {
 		return response;
+	}
+	
+	public void resetResponse() {
+		response = "";
 	}
 
 	/*

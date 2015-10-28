@@ -1,5 +1,6 @@
 package asl.middleware.database;
 
+import asl.ErrorCodes;
 import asl.middleware.RequestWrapper;
 import asl.middleware.Server;
 
@@ -23,11 +24,11 @@ public class DatabaseWorker implements Runnable {
 
 		rh.processRequest(cr);
 		String response = rh.getResponse();
-		if (response != null) {
-			response = response.replace("\n", " ");
-			cr.setResponse(response);
-			middleware.addToResponseQueue(cr);
-		}
+		if (response.equals(""))
+			response = ErrorCodes.SQL_ERROR + " " + "no actual response";
+		cr.setResponse(response);
+		rh.resetResponse();
+		middleware.addToResponseQueue(cr);
 
 		dp.returnRequestHandlerToPool(rh);
 	}

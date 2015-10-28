@@ -7,7 +7,7 @@ DECLARE
   mid BIGINT;
 BEGIN
 
-SELECT content, id INTO result, mid FROM message WHERE receiverid = rid AND senderid = sid ORDER BY times ASC LIMIT 1;
+SELECT content, id INTO result, mid FROM message WHERE receiverid = rid AND senderid = sid ORDER BY times ASC, id LIMIT 1;
 
 IF result IS NULL THEN
   SELECT count(id) INTO idcount FROM client WHERE id = sid;
