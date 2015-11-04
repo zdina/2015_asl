@@ -10,10 +10,12 @@ public class ResponseProcessor implements Runnable {
 
 	private Server middleware;
 	private long startTime;
+	private long startTimeNano;
 
 	public ResponseProcessor(Server middleware) {
 		this.middleware = middleware;
 		startTime = System.currentTimeMillis();
+		startTimeNano = System.nanoTime();
 	}
 
 	@Override
@@ -34,17 +36,19 @@ public class ResponseProcessor implements Runnable {
 
 					os.write(finishedByteResponse);
 
-					long dbClientId = middleware.getClientDbId(cp
-							.getInternalClientId());
+//					long dbClientId = middleware.getClientDbId(cp
+//							.getInternalClientId());
 					long responseSent = System.nanoTime();
-					Util.serverLogger.info("{},{},{},{},{},{},{},{}",
-							System.currentTimeMillis() - startTime, dbClientId,
-							cp.getRequest().split(" ")[0], cp.getResponse()
-									.split(" ")[0],
-							cp.getTimeDbStart() - cp.getTimeArrival(),
-							cp.getTimeDbReceived() - cp.getTimeDbStart(),
-							responseSent - cp.getTimeDbReceived(), responseSent
-									- cp.getTimeArrival());
+
+					Util.serverLogger
+							.info("{},{},{},{},{},{},{}",
+									middleware.getClientDbId(cp.getInternalClientId()),
+									cp.getRequest().split(" ")[0],
+									cp.getResponse().split(" ")[0],
+									(int) ((cp.getTimeArrival() - startTimeNano) / 10000),
+									(int) ((cp.getTimeDbStart() - startTimeNano) / 10000),
+									(int) ((cp.getTimeDbReceived() - startTimeNano) / 10000),
+									(int) ((responseSent - startTimeNano) / 10000));
 				} catch (IOException e) {
 					Util.serverErrorLogger.error(cp.getRequest());
 					Util.serverErrorLogger.error(cp.getResponse());
@@ -54,5 +58,4 @@ public class ResponseProcessor implements Runnable {
 			}
 		}
 	}
-
 }

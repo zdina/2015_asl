@@ -49,7 +49,7 @@ public class ResponseAcceptor implements Runnable {
 				String response = new String(bb.toArray());
 				Request r = c.getRequest();
 				stopTime = System.nanoTime();
-				long timePassed = stopTime - r.getTimeSent();
+				int timePassed = (int) ((stopTime - r.getTimeSent())/10000);
 				Util.clientLogger.info("{},{},{},{},{}",
 						System.currentTimeMillis() - startTime, ownId,
 						r.getRequestCode(),

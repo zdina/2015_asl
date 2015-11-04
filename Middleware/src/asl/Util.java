@@ -16,5 +16,10 @@ public class Util {
 	
 	public static final int NO_RECEIVER_CODE = 0; //needs a no receiver id in db!!
 
+	public static final int WORKLOAD_RANDOM = 0;
+	public static final int SEND_ONLY = 1;
+	public static final int RECEIVE_ONLY = 2;
+	public static final int SEND_RECEIVE = 3;
+	public static final int CREATE_QUEUES_ONLY = 4;
 
 }

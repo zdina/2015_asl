@@ -54,6 +54,8 @@ public class RequestSender {
 
 	public void register() {
 		String request = RequestCodes.REGISTER + "";
+		if (ownId != 0)
+			request += " " + ownId;
 		executeRequest(request);
 	}
 

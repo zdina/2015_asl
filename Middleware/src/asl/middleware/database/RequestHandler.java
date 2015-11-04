@@ -31,7 +31,7 @@ public class RequestHandler {
 		this.middleware = middleware;
 		initStatements();
 	}
-	
+
 	private void initStatements() {
 		try {
 			registerStmt = con.prepareStatement("SELECT registerClient()");
@@ -51,7 +51,8 @@ public class RequestHandler {
 	}
 
 	public void processRequest(RequestWrapper cp) {
-		String[] requestParts = cp.getRequest().split(" ");
+		String request = cp.getRequest().trim();
+		String[] requestParts = request.split(" ");
 		int requestCode = Integer.parseInt(requestParts[0]);
 		cp.setTimeDbStart(System.nanoTime());
 		try {
@@ -98,7 +99,7 @@ public class RequestHandler {
 	public String getResponse() {
 		return response;
 	}
-	
+
 	public void resetResponse() {
 		response = "";
 	}
@@ -108,11 +109,17 @@ public class RequestHandler {
 	 */
 	private void register(String[] requestParts, long internalId)
 			throws SQLException {
-		ResultSet rs = registerStmt.executeQuery();
-		rs.next();
-		String dbresponse = rs.getString(1);
-		response = ResponseCodes.REGISTER + " " + dbresponse;
-		middleware.setClientDbId(internalId, Long.parseLong(dbresponse));
+		if (requestParts.length == 1) {
+			ResultSet rs = registerStmt.executeQuery();
+			rs.next();
+			String dbresponse = rs.getString(1);
+			response = ResponseCodes.REGISTER + " " + dbresponse;
+			middleware.setClientDbId(internalId, Long.parseLong(dbresponse));
+		}
+		else {
+			response = Integer.toString(ResponseCodes.REGISTER);
+			middleware.setClientDbId(internalId, Long.parseLong(requestParts[1]));
+		}
 	}
 
 	/*
@@ -147,12 +154,13 @@ public class RequestHandler {
 	 * Message Send Request: code _ port _ senderId _ receiverId _ queueId _
 	 * content
 	 */
-	private void send(String[] requestParts) throws SQLException {
+	private void send(String[] requestParts) {
+
 		long senderId = Long.parseLong(requestParts[1]);
 		long receiverId = Long.parseLong(requestParts[2]);
 		long queueId = Long.parseLong(requestParts[3]);
 		String content = requestParts[4];
-
+		try {
 		sendMessageStmt.setLong(1, senderId);
 		sendMessageStmt.setLong(2, receiverId);
 		sendMessageStmt.setLong(3, queueId);
@@ -161,13 +169,24 @@ public class RequestHandler {
 		ResultSet rs = sendMessageStmt.executeQuery();
 		rs.next();
 		String dbresponse = rs.getString(1);
-
+		
 		if (dbresponse.equals("noreceiver"))
 			response = ErrorCodes.WRONG_CLIENT_ID + " " + receiverId;
 		else if (dbresponse.equals("noqueue"))
 			response = ErrorCodes.WRONG_QUEUE_ID + " " + queueId;
 		else
 			response = ResponseCodes.SEND + "";
+		
+		} catch (SQLException e) {
+			if (e.getMessage().contains("receiverid_fkey"))
+				response = ErrorCodes.WRONG_CLIENT_ID + " " + receiverId;
+			else if (e.getMessage().contains("queueid_fkey"))
+				response = ErrorCodes.WRONG_QUEUE_ID + " " + queueId;
+			else {
+				response = ErrorCodes.SQL_ERROR + " " + e;
+				Util.serverErrorLogger.catching(e);
+			}
+		}
 	}
 
 	/*

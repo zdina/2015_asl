@@ -1,5 +1,7 @@
 package asl.client;
 
+import java.io.PrintWriter;
+
 import asl.ErrorCodes;
 import asl.ResponseCodes;
 import asl.Util;
@@ -14,6 +16,7 @@ public class ResponseHandler {
 
 	public void processResponse(String response) {
 		try {
+			response = response.trim();
 			String[] responseParts = response.split(" ");
 			int responseCode = Integer.parseInt(responseParts[0]);
 
@@ -67,17 +70,18 @@ public class ResponseHandler {
 
 		c.nextRequest();
 	}
-	
+
 	/*
-	 * Peek/pop by queue/sender: code _ queueid/senderid _ content (if any message available)
+	 * Peek/pop by queue/sender: code _ queueid/senderid _ content (if any
+	 * message available)
 	 */
 	private void handleMessage(String[] responseParts) throws Exception {
-		long id = Long.parseLong(responseParts[1]); // could be query or sender id
+		long id = Long.parseLong(responseParts[1]); // could be query or sender
+													// id
 		if (responseParts.length == 3) {
 			String message = responseParts[2];
 			// do something with message
-		}
-		else {
+		} else {
 			// no message for the particular query
 		}
 	}
@@ -86,15 +90,16 @@ public class ResponseHandler {
 		// do something
 	}
 
-
 	/*
 	 * List of queues that have messages for the client code _ num queues _ q1
 	 * .. qn
 	 */
 	private void handleQueues(String[] responseParts) throws Exception {
+		c.resetQueuesWithMessagesSet();;
 		int numQueues = Integer.parseInt(responseParts[1]);
-		for (int i = 0; i < numQueues; i++)
-			c.addQueueId(Long.parseLong(responseParts[i + 2]));
+		for (int i = 0; i < numQueues; i++) {
+				c.addQueueWithMessagesId(Long.parseLong(responseParts[i + 2]));
+		}
 	}
 
 	private void handleSQLError(String response) throws Exception {
@@ -112,14 +117,22 @@ public class ResponseHandler {
 	 */
 	private void handleRegisterResponse(String[] responseParts)
 			throws Exception {
-		long id = Long.parseLong(responseParts[1]);
-		c.setId(id);
+		if (responseParts.length == 2) {
+			long id = Long.parseLong(responseParts[1]);
+			c.setId(id);
+			PrintWriter out = new PrintWriter(c.getMachineClinetNumber()
+					+ ".txt");
+			out.print(id);
+			out.close();
+		}
 	}
 
 	private void handleCreateQueueResponse(String[] responseParts)
 			throws Exception {
 		long id = Long.parseLong(responseParts[1]);
-		c.addQueueId(id);
+		if (c.getOwnQueueIdSetSize() > 100)
+			c.resetOwnQueueIdSet();
+		c.addOwnQueueId(id);
 	}
 
 	private void handleRemoveQueueOrNoQueueResponse(String[] responseParts)
